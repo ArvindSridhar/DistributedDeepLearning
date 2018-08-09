@@ -82,8 +82,8 @@ class distributed_model_training:
 				print('Segment:', segment)
 				(x_train_seg, y_train_seg) = self.segment_batches[segment]				
 				self.segment_models[segment].compile(loss='categorical_crossentropy',
-		            optimizer=Adam(),
-		            metrics=['accuracy'])
+					optimizer=Adam(),
+					metrics=['accuracy'])
 				history = self.segment_models[segment].fit(x_train_seg, y_train_seg,
 			        batch_size=self.batch_size,
 			        epochs=self.num_iters_on_segment,
@@ -96,8 +96,8 @@ class distributed_model_training:
 
 			# Compile aggregate model
 			self.aggregate_model.compile(loss='categorical_crossentropy',
-	            optimizer=Adam(),
-	            metrics=['accuracy'])
+				optimizer=Adam(),
+				metrics=['accuracy'])
 
 			# Evaluate aggregate model on the test set
 			score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
