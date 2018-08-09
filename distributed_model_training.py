@@ -18,7 +18,7 @@ class distributed_model_training:
 		self.num_classes = 10
 		self.total_num_epochs = 1 #to change
 		self.batch_size = 100
-		self.num_segments = 10
+		self.num_segments = 4
 		self.get_data()
 		self.distribute_data()
 		self.define_models()
@@ -74,7 +74,7 @@ class distributed_model_training:
 				# self.segment_models[segment] = self.train_model_segment(model_seg, x_train_seg, y_train_seg)
 				history = self.segment_models[segment].fit(x_train_seg, y_train_seg,
 			        batch_size=self.batch_size,
-			        epochs=1,
+			        epochs=5,
 			        verbose=1,
 			        validation_data=(self.x_test, self.y_test))
 
@@ -117,7 +117,7 @@ class distributed_model_training:
 
 			history = self.segment_models[segment].fit(x_train_seg, y_train_seg,
 		        batch_size=self.batch_size,
-		        epochs=1,
+		        epochs=5,
 		        verbose=1,
 		        validation_data=(self.x_test, self.y_test))
 
