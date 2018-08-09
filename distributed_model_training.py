@@ -12,15 +12,17 @@ import numpy as np
 import pandas
 import matplotlib.pyplot as plt
 import math
+from scipy import linalg as la
 
 class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.total_num_epochs = 5 #Can tune
+		self.total_num_epochs = 2 #Can tune
 		self.batch_size = 100
-		self.num_segments = 10 #Can tune
-		self.num_iters_on_segment = 10 #Can tune
+		self.num_segments = 4 #Can tune
+		self.num_iters_on_segment = 4 #Can tune
+		self.weights_plotter = pca_weights_plotter()
 		self.get_data()
 		self.distribute_data()
 		self.define_models()
@@ -78,17 +80,22 @@ class distributed_model_training:
 			self.aggregate_model.add(Dense(self.num_classes, activation='softmax'))
 
 			# Train individual models for 5 epochs
+			colors = iter(['red', 'blue', 'green', 'black', 'yellow', 'teal'])
 			for segment in sorted(self.segment_models):
 				print('Segment:', segment)
-				(x_train_seg, y_train_seg) = self.segment_batches[segment]				
-				self.segment_models[segment].compile(loss='categorical_crossentropy',
+				(x_train_seg, y_train_seg) = self.segment_batches[segment]
+				model_seg = self.segment_models[segment]
+				model_seg.compile(loss='categorical_crossentropy',
 					optimizer=Adam(),
 					metrics=['accuracy'])
-				history = self.segment_models[segment].fit(x_train_seg, y_train_seg,
+				history = model_seg.fit(x_train_seg, y_train_seg,
 			        batch_size=self.batch_size,
 			        epochs=self.num_iters_on_segment,
 			        verbose=1,
 			        validation_data=(self.x_test, self.y_test))
+				data = model_seg.get_weights()[0]
+				color = next(colors)
+				self.weights_plotter.plot_data(data, color) if i == self.total_num_epochs-1 else None
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = sum([np.array(self.segment_models[segment].get_weights()) for segment in self.segment_models])/self.num_segments
@@ -103,18 +110,64 @@ class distributed_model_training:
 			score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
 			print(score)
 
+			self.weights_plotter.plot_data(self.aggregate_model.get_weights()[0], "orange", 'x') if i == self.total_num_epochs-1 else None
+			self.weights_plotter.show_plot() if i == self.total_num_epochs-1 else None
+
 			# Redistribute the aggregate model to each segment for the next epoch of training
 			for segment in self.segment_models:
 				self.segment_models[segment] = clone_model(self.aggregate_model)
 
-			#clustering of weights: local minima (throw away the rest of the clusters if one is clearly best or merge clusters and try to re-train)
-			#have the same dataset on each segment
+			#Clustering of weights: local minima (throw away the rest of the clusters if one is clearly best or merge clusters and try to re-train)
 			#Run more iterations between merging
+			#Data distribution problem
+			#  Idea 1: have each segment get all data, run diff. epochs on diff. segments to parallelize that way (kinda defeats the purpose tho)
+			#  Fundamentally it's a data problem: each segment does not have enough data to train adequately and find the right minima/optima, so weights are too dissimilar and averaging can't be done reliably
+			#  data augmentation is a solution? Flip each image across vertical axis, that doubles your dataset on each segment
 
 		# Conduct final testing of aggregate model
 		train_score = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
 		test_score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
 		print("Training accuracy:", train_score[1])
 		print("Test accuracy:", test_score[1])
+
+
+class pca_weights_plotter:
+
+	def __init__(self):
+		self.fig = plt.figure()
+		
+	def plot_data(self, data, color, symbol='.', num_dims_to_keep=2):
+		self.data = data
+		self.m, self.n = self.data.shape
+		self.num_dims_to_keep = num_dims_to_keep
+		self.color = color
+		self.symbol = symbol
+		self.plot_PCA()
+		# self.test_PCA()
+
+	def PCA(self):
+		data_mean_normalized = self.data - self.data.mean(axis=0)
+		R = np.cov(data_mean_normalized, rowvar=False)
+		evals, evecs = la.eigh(R)
+		idx = np.argsort(evals)[::-1]
+		evecs = evecs[:,idx]
+		evals = evals[idx]
+		evecs = evecs[:, :self.num_dims_to_keep]
+		return np.dot(evecs.T, data_mean_normalized.T).T, evals, evecs
+
+	def test_PCA(self):
+		_, _, eigenvectors = self.PCA()
+		data_recovered = np.dot(eigenvectors, self.m).T
+		data_recovered += data_recovered.mean(axis=0)
+		assert np.allclose(self.data, data_recovered)
+
+	def plot_PCA(self):
+		ax1 = self.fig.add_subplot(111)
+		data_resc, evals, evecs = self.PCA()
+		ax1.plot(data_resc[:, 0], data_resc[:, 1], self.symbol, mfc=self.color, mec=self.color)
+
+	def show_plot(self):
+		plt.show()
+
 
 model_instance = distributed_model_training()
