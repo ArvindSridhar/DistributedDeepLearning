@@ -20,7 +20,7 @@ class distributed_model_training:
 		self.num_classes = 10
 		self.total_num_epochs = 1 #Can tune
 		self.batch_size = 100
-		self.num_segments = 4 #Can tune
+		self.num_segments = 8 #Can tune
 		self.num_iters_on_segment = 4 #Can tune
 		self.weights_plotter = pca_weights_plotter()
 		self.get_data()
@@ -55,6 +55,9 @@ class distributed_model_training:
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
 
+		#for i in range(self.num_segments):
+		#	self.segment_batches["seg"+str(i)] = (self.x_train, self.y_train)
+
 	def define_models(self):
 		self.segment_models = {}
 		for i in range(self.num_segments):
@@ -80,7 +83,7 @@ class distributed_model_training:
 			self.aggregate_model.add(Dense(self.num_classes, activation='softmax'))
 
 			# Train individual models for 5 epochs
-			colors = iter(['red', 'blue', 'green', 'black', 'yellow', 'teal'])
+			colors = iter(['red', 'blue', 'green', 'black', 'yellow', 'teal', 'magenta', 'pink', 'skyblue', 'cyan'])
 			for segment in sorted(self.segment_models):
 				print('Segment:', segment)
 				(x_train_seg, y_train_seg) = self.segment_batches[segment]
@@ -98,7 +101,7 @@ class distributed_model_training:
 				self.weights_plotter.plot_data(data, color) if i == self.total_num_epochs-1 else None
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
-			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*8 for segment in self.segment_models])/self.num_segments
+			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32 for segment in self.segment_models])/self.num_segments
 			self.aggregate_model.set_weights(avg_weights)
 
 			# Compile aggregate model
@@ -116,15 +119,6 @@ class distributed_model_training:
 			# Redistribute the aggregate model to each segment for the next epoch of training
 			for segment in self.segment_models:
 				self.segment_models[segment] = clone_model(self.aggregate_model)
-
-			#Clustering of weights: local minima (throw away the rest of the clusters if one is clearly best or merge clusters and try to re-train)
-			#Run more iterations between merging
-			#Data distribution problem
-			#  Idea 1: have each segment get all data, run diff. epochs on diff. segments to parallelize that way (kinda defeats the purpose tho)
-			#  Fundamentally it's a data problem: each segment does not have enough data to train adequately and find the right minima/optima, so weights are too dissimilar and averaging can't be done reliably
-			#  data augmentation is a solution? Flip each image across vertical axis, that doubles your dataset on each segment
-
-			#2 ideas: 1) add lotsa data to each segment, train 10 segments, merge, see what happens; 2) figure out how to average better to achieve better spatial distribution in plot
 
 		# Conduct final testing of aggregate model
 		train_score = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
