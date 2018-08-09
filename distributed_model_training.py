@@ -18,7 +18,7 @@ class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.total_num_epochs = 2 #Can tune
+		self.total_num_epochs = 1 #Can tune
 		self.batch_size = 100
 		self.num_segments = 4 #Can tune
 		self.num_iters_on_segment = 4 #Can tune
@@ -98,7 +98,7 @@ class distributed_model_training:
 				self.weights_plotter.plot_data(data, color) if i == self.total_num_epochs-1 else None
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
-			avg_weights = sum([np.array(self.segment_models[segment].get_weights()) for segment in self.segment_models])/self.num_segments
+			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*8 for segment in self.segment_models])/self.num_segments
 			self.aggregate_model.set_weights(avg_weights)
 
 			# Compile aggregate model
@@ -123,6 +123,8 @@ class distributed_model_training:
 			#  Idea 1: have each segment get all data, run diff. epochs on diff. segments to parallelize that way (kinda defeats the purpose tho)
 			#  Fundamentally it's a data problem: each segment does not have enough data to train adequately and find the right minima/optima, so weights are too dissimilar and averaging can't be done reliably
 			#  data augmentation is a solution? Flip each image across vertical axis, that doubles your dataset on each segment
+
+			#2 ideas: 1) add lotsa data to each segment, train 10 segments, merge, see what happens; 2) figure out how to average better to achieve better spatial distribution in plot
 
 		# Conduct final testing of aggregate model
 		train_score = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
