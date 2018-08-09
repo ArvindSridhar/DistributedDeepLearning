@@ -17,10 +17,10 @@ class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.total_num_epochs = 4 #Can tune
+		self.total_num_epochs = 5 #Can tune
 		self.batch_size = 100
-		self.num_segments = 5 #Can tune
-		self.num_iters_on_segment = 4 #Can tune
+		self.num_segments = 10 #Can tune
+		self.num_iters_on_segment = 10 #Can tune
 		self.get_data()
 		self.distribute_data()
 		self.define_models()
@@ -67,7 +67,7 @@ class distributed_model_training:
 	def train_model_aggregate(self):
 		# Training and evaluation loop
 		for i in range(self.total_num_epochs):
-			print("Grand Epoch:", i, "/", self.total_num_epochs)
+			print("Grand Epoch:", i+1, "/", self.total_num_epochs)
 			
 			# Re-define the aggregate model (stored on the master node, and ultimately returned), also re-initialize its weights
 			self.aggregate_model = Sequential()
@@ -106,6 +106,10 @@ class distributed_model_training:
 			# Redistribute the aggregate model to each segment for the next epoch of training
 			for segment in self.segment_models:
 				self.segment_models[segment] = clone_model(self.aggregate_model)
+
+			#clustering of weights: local minima (throw away the rest of the clusters if one is clearly best or merge clusters and try to re-train)
+			#have the same dataset on each segment
+			#Run more iterations between merging
 
 		# Conduct final testing of aggregate model
 		train_score = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
