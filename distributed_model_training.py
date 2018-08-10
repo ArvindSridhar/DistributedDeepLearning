@@ -19,10 +19,10 @@ class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.total_num_epochs = 2 #Can tune
-		self.batch_size = 100
-		self.num_segments = 2 #Can tune
-		self.num_iters_on_segment = 2 #Can tune
+		self.num_grand_epochs = 2 #Can tune
+		self.batch_size = 100 #Can tune
+		self.num_segments = 5 #Can tune
+		self.num_iters_on_segment = 5 #Can tune
 		self.get_data()
 		self.distribute_data()
 		self.define_models()
@@ -70,8 +70,8 @@ class distributed_model_training:
 
 	def train_model_aggregate(self):
 		# Training and evaluation loop
-		for i in range(self.total_num_epochs):
-			print("Grand Epoch:", i+1, "/", self.total_num_epochs)
+		for i in range(self.num_grand_epochs):
+			print("Grand Epoch:", i+1, "/", self.num_grand_epochs)
 			
 			# Re-define the aggregate model (stored on the master node, and ultimately returned), also re-initialize its weights
 			self.aggregate_model = Sequential()
@@ -82,7 +82,7 @@ class distributed_model_training:
 			self.aggregate_model.add(Dense(self.num_classes, activation='softmax'))
 
 			# Define a plotting object for every numpy array that comprises the weights of our neural network, only if the algorithm is on its last grand epoch
-			if i == self.total_num_epochs-1:
+			if i == self.num_grand_epochs+1:
 				self.plots = [pca_weights_plotter() for j in range(len(self.aggregate_model.get_weights()))]
 
 			# Train individual models for specified number of epochs	
@@ -98,7 +98,7 @@ class distributed_model_training:
 			        epochs=self.num_iters_on_segment,
 			        verbose=1,
 			        validation_data=(self.x_test, self.y_test))
-				if i == self.total_num_epochs-1:
+				if i == self.num_grand_epochs+1:
 					weights = model_seg.get_weights()
 					for j in range(len(weights)):
 						plot = self.plots[j]
@@ -118,7 +118,7 @@ class distributed_model_training:
 			print(score)
 
 			# Plot the average model's weights and show the plots, only if the algorithm is on its last grand epoch
-			if i == self.total_num_epochs-1:
+			if i == self.num_grand_epochs+1:
 				avg_weights = self.aggregate_model.get_weights()
 				for j in range(len(avg_weights)):
 					plot = self.plots[j]
