@@ -54,10 +54,7 @@ class distributed_model_training:
 		for i in range(self.num_segments):
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
-
-		#for i in range(self.num_segments):
-		#	self.segment_batches["seg"+str(i)] = (self.x_train, self.y_train)
-
+			
 	def define_models(self):
 		self.segment_models = {}
 		for i in range(self.num_segments):

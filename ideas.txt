@@ -1,11 +1,31 @@
 Clustering of weights: local minima (throw away the rest of the clusters if one is clearly best or merge clusters and try to re-train)
 Run more iterations between merging
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
 Data distribution problem
 -Idea 1: have each segment get all data, run diff. epochs on diff. segments to parallelize that way (kinda defeats the purpose tho)
 -Fundamentally it's a data problem: each segment does not have enough data to train adequately and find the right minima/optima, so weights are too dissimilar and averaging can't be done reliably
 -Data augmentation is a solution? Flip each image across vertical axis, that doubles your dataset on each segment
+-NOPE: clearly this is a wrong assumption, there is enough data on every segment, more data creates bad results, the spatial distribution idea is much more promising
+
+---------------------------------------------------------------------------------------------------------------------------------------
 
 #2 ideas: 1) add lotsa data to each segment, train 10 segments, merge, see what happens; 2) figure out how to average better to achieve better spatial distribution in plot
 
 So the problem seems to be with the scale of the weights after averaging: they are scaled down, which significantly impacts performance
 -Scaling the weights down reduces accuracy, while scaling the weights up increases accuracy (it's a direct correlation)
+
+---Update---
+The lotsa data to a segment idea is definitely not correct
+-Trained each segment with all the data, achieved 11% accuracy, obviously not what we want
+-Data to a segment is fine, the problem is weights that are too dissimilar between large numbers of segments, averaging cannot be done reliably
+
+So the problem is with number of segments, not data alloted to each segment, as previously conjectured
+
+Spatial distribution seems promising
+
+Need smarter way to merge: intelligent merging of the weights
+-Autoencoder?
+-Neural net?
+-We must judge the output of the neural network: will output weights that we can then use on test set, must meet a threshold, that's how you train
