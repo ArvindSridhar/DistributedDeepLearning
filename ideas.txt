@@ -29,3 +29,16 @@ Need smarter way to merge: intelligent merging of the weights
 -Autoencoder?
 -Neural net?
 -We must judge the output of the neural network: will output weights that we can then use on test set, must meet a threshold, that's how you train
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+Merging strategies
+
+Order them by loss on test set
+Compute weighted average with predetermined weightiness: first one gets 50% of say, second one 25%, third one 12.5%, fourth 6.25%, etc., last one gets rest of say
+
+
+2 segments: it merges nicely and maintains same accuracy because the merged weights still closely resemble the weights of both segments
+
+10 segments: it doesn’t merge nicely because the merged weights are averages of a whole bunch of segments, at the end doesn’t look like any of them

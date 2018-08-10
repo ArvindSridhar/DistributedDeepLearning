@@ -13,16 +13,16 @@ import pandas
 import matplotlib.pyplot as plt
 import math
 from scipy import linalg as la
+import random
 
 class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.total_num_epochs = 1 #Can tune
+		self.total_num_epochs = 2 #Can tune
 		self.batch_size = 100
-		self.num_segments = 8 #Can tune
-		self.num_iters_on_segment = 4 #Can tune
-		self.weights_plotter = pca_weights_plotter()
+		self.num_segments = 2 #Can tune
+		self.num_iters_on_segment = 2 #Can tune
 		self.get_data()
 		self.distribute_data()
 		self.define_models()
@@ -54,9 +54,10 @@ class distributed_model_training:
 		for i in range(self.num_segments):
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
-			
+
 	def define_models(self):
 		self.segment_models = {}
+		self.segment_colors = {}
 		for i in range(self.num_segments):
 			model = Sequential()
 			model.add(Dense(512, activation='relu', input_shape=(784,)))
@@ -65,6 +66,7 @@ class distributed_model_training:
 			model.add(Dropout(0.2))
 			model.add(Dense(self.num_classes, activation='softmax'))
 			self.segment_models["seg"+str(i)] = model
+			self.segment_colors["seg"+str(i)] = self.random_color()
 
 	def train_model_aggregate(self):
 		# Training and evaluation loop
@@ -79,8 +81,11 @@ class distributed_model_training:
 			self.aggregate_model.add(Dropout(0.2))
 			self.aggregate_model.add(Dense(self.num_classes, activation='softmax'))
 
-			# Train individual models for 5 epochs
-			colors = iter(['red', 'blue', 'green', 'black', 'yellow', 'teal', 'magenta', 'pink', 'skyblue', 'cyan'])
+			# Define a plotting object for every numpy array that comprises the weights of our neural network, only if the algorithm is on its last grand epoch
+			if i == self.total_num_epochs-1:
+				self.plots = [pca_weights_plotter() for j in range(len(self.aggregate_model.get_weights()))]
+
+			# Train individual models for specified number of epochs	
 			for segment in sorted(self.segment_models):
 				print('Segment:', segment)
 				(x_train_seg, y_train_seg) = self.segment_batches[segment]
@@ -93,9 +98,11 @@ class distributed_model_training:
 			        epochs=self.num_iters_on_segment,
 			        verbose=1,
 			        validation_data=(self.x_test, self.y_test))
-				data = model_seg.get_weights()[0]
-				color = next(colors)
-				self.weights_plotter.plot_data(data, color) if i == self.total_num_epochs-1 else None
+				if i == self.total_num_epochs-1:
+					weights = model_seg.get_weights()
+					for j in range(len(weights)):
+						plot = self.plots[j]
+						plot.plot_data(weights[j], self.segment_colors[segment])
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32 for segment in self.segment_models])/self.num_segments
@@ -110,8 +117,13 @@ class distributed_model_training:
 			score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
 			print(score)
 
-			self.weights_plotter.plot_data(self.aggregate_model.get_weights()[0], "orange", 'x') if i == self.total_num_epochs-1 else None
-			self.weights_plotter.show_plot() if i == self.total_num_epochs-1 else None
+			# Plot the average model's weights and show the plots, only if the algorithm is on its last grand epoch
+			if i == self.total_num_epochs-1:
+				avg_weights = self.aggregate_model.get_weights()
+				for j in range(len(avg_weights)):
+					plot = self.plots[j]
+					plot.plot_data(avg_weights[j], "dark orange", 'x')
+					plot.show_plot()
 
 			# Redistribute the aggregate model to each segment for the next epoch of training
 			for segment in self.segment_models:
@@ -123,6 +135,9 @@ class distributed_model_training:
 		print("Training accuracy:", train_score[1])
 		print("Test accuracy:", test_score[1])
 
+	def random_color(self):
+	    return "#"+''.join([random.choice('0123456789ABCDEF') for i in range(6)])
+
 
 class pca_weights_plotter:
 
@@ -131,7 +146,10 @@ class pca_weights_plotter:
 		
 	def plot_data(self, data, color, symbol='.', num_dims_to_keep=2):
 		self.data = data
-		self.m, self.n = self.data.shape
+		if len(data.shape) < 2:
+			self.m, self.n = self.data.shape, 1
+		else:
+			self.m, self.n = self.data.shape
 		self.num_dims_to_keep = num_dims_to_keep
 		self.color = color
 		self.symbol = symbol

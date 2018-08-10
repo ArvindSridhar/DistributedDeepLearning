@@ -66,3 +66,11 @@
 
 		# def train_model_segment(self, model, x_train, y_train):
 		# return model
+
+
+
+
+
+
+
+#colors = iter(['red', 'blue', 'green', 'black', 'yellow', 'teal', 'magenta', 'pink', 'skyblue', 'cyan'])
