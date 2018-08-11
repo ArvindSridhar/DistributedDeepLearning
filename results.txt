@@ -1,0 +1,106 @@
+Using TensorFlow backend.
+Grand Epoch: 1 / 3
+Segment: seg0
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 132us/step - loss: 0.4772 - acc: 0.8585 - val_loss: 0.2426 - val_acc: 0.9235
+Epoch 2/2
+12000/12000 [==============================] - 1s 117us/step - loss: 0.1948 - acc: 0.9426 - val_loss: 0.1789 - val_acc: 0.9449
+Segment: seg1
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 137us/step - loss: 0.5012 - acc: 0.8519 - val_loss: 0.2044 - val_acc: 0.9402
+Epoch 2/2
+12000/12000 [==============================] - 1s 112us/step - loss: 0.1933 - acc: 0.9423 - val_loss: 0.1722 - val_acc: 0.9460
+Segment: seg2
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 137us/step - loss: 0.4898 - acc: 0.8552 - val_loss: 0.2279 - val_acc: 0.9308
+Epoch 2/2
+12000/12000 [==============================] - 1s 119us/step - loss: 0.1988 - acc: 0.9412 - val_loss: 0.1655 - val_acc: 0.9508
+Segment: seg3
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 141us/step - loss: 0.5138 - acc: 0.8486 - val_loss: 0.2441 - val_acc: 0.9287
+Epoch 2/2
+12000/12000 [==============================] - 1s 114us/step - loss: 0.2111 - acc: 0.9352 - val_loss: 0.1964 - val_acc: 0.9410
+Segment: seg4
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 142us/step - loss: 0.4736 - acc: 0.8587 - val_loss: 0.2269 - val_acc: 0.9328
+Epoch 2/2
+12000/12000 [==============================] - 1s 113us/step - loss: 0.1783 - acc: 0.9464 - val_loss: 0.1689 - val_acc: 0.9477
+10000/10000 [==============================] - 1s 67us/step
+['2.922237396621704', '0.8165']
+Grand Epoch: 2 / 3
+Segment: seg0
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 154us/step - loss: 0.4771 - acc: 0.8622 - val_loss: 0.2450 - val_acc: 0.9283
+Epoch 2/2
+12000/12000 [==============================] - 1s 116us/step - loss: 0.1921 - acc: 0.9438 - val_loss: 0.1796 - val_acc: 0.9442
+Segment: seg1
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 149us/step - loss: 0.5104 - acc: 0.8455 - val_loss: 0.2114 - val_acc: 0.9365
+Epoch 2/2
+12000/12000 [==============================] - 1s 114us/step - loss: 0.1963 - acc: 0.9403 - val_loss: 0.1621 - val_acc: 0.9482
+Segment: seg2
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 156us/step - loss: 0.4950 - acc: 0.8541 - val_loss: 0.2220 - val_acc: 0.9323
+Epoch 2/2
+12000/12000 [==============================] - 1s 110us/step - loss: 0.1933 - acc: 0.9391 - val_loss: 0.1572 - val_acc: 0.9526
+Segment: seg3
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 155us/step - loss: 0.5104 - acc: 0.8454 - val_loss: 0.2440 - val_acc: 0.9267
+Epoch 2/2
+12000/12000 [==============================] - 1s 119us/step - loss: 0.2062 - acc: 0.9378 - val_loss: 0.1761 - val_acc: 0.9482
+Segment: seg4
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 173us/step - loss: 0.4619 - acc: 0.8623 - val_loss: 0.2366 - val_acc: 0.9287
+Epoch 2/2
+12000/12000 [==============================] - 1s 114us/step - loss: 0.1807 - acc: 0.9472 - val_loss: 0.1635 - val_acc: 0.9496
+10000/10000 [==============================] - 1s 92us/step
+['0.8928478422234981', '0.943']
+Grand Epoch: 3 / 3
+Segment: seg0
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 168us/step - loss: 0.4822 - acc: 0.8567 - val_loss: 0.2276 - val_acc: 0.9312
+Epoch 2/2
+12000/12000 [==============================] - 1s 119us/step - loss: 0.1855 - acc: 0.9456 - val_loss: 0.2189 - val_acc: 0.9311
+Segment: seg1
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 190us/step - loss: 0.5008 - acc: 0.8523 - val_loss: 0.2310 - val_acc: 0.9287
+Epoch 2/2
+12000/12000 [==============================] - 2s 126us/step - loss: 0.1978 - acc: 0.9404 - val_loss: 0.1549 - val_acc: 0.9493
+Segment: seg2
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 171us/step - loss: 0.4884 - acc: 0.8512 - val_loss: 0.2112 - val_acc: 0.9366
+Epoch 2/2
+12000/12000 [==============================] - 2s 130us/step - loss: 0.1885 - acc: 0.9428 - val_loss: 0.1557 - val_acc: 0.9527
+Segment: seg3
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 170us/step - loss: 0.5023 - acc: 0.8494 - val_loss: 0.2314 - val_acc: 0.9316
+Epoch 2/2
+12000/12000 [==============================] - 2s 134us/step - loss: 0.2046 - acc: 0.9362 - val_loss: 0.1707 - val_acc: 0.9465
+Segment: seg4
+Train on 12000 samples, validate on 10000 samples
+Epoch 1/2
+12000/12000 [==============================] - 2s 173us/step - loss: 0.4735 - acc: 0.8570 - val_loss: 0.2259 - val_acc: 0.9324
+Epoch 2/2
+12000/12000 [==============================] - 2s 131us/step - loss: 0.1849 - acc: 0.9431 - val_loss: 0.1658 - val_acc: 0.9489
+10000/10000 [==============================] - 1s 90us/step
+['2.90473474887684', '0.8161']
+60000/60000 [==============================] - 3s 50us/step
+10000/10000 [==============================] - 1s 51us/step
+Training accuracy with merged model: 0.81975
+Test accuracy with merged model: 0.8161
+Training accuracy with ensembling and consensus predictors: 0.958183333333
+Test accuracy with ensembling and consensus predictors: 0.9573

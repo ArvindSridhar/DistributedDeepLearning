@@ -14,15 +14,18 @@ import matplotlib.pyplot as plt
 import math
 from scipy import linalg as la
 import random
+import itertools
+import operator
 
 class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.num_grand_epochs = 2 #Can tune
+		self.num_grand_epochs = 3 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 5 #Can tune
-		self.num_iters_on_segment = 5 #Can tune
+		self.num_segments = 10 #Can tune
+		self.num_iters_on_segment = 4 #Can tune
+		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
 		self.define_models()
@@ -66,7 +69,7 @@ class distributed_model_training:
 			model.add(Dropout(0.2))
 			model.add(Dense(self.num_classes, activation='softmax'))
 			self.segment_models["seg"+str(i)] = model
-			self.segment_colors["seg"+str(i)] = self.random_color()
+			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
 	def train_model_aggregate(self):
 		# Training and evaluation loop
@@ -125,18 +128,82 @@ class distributed_model_training:
 					plot.plot_data(avg_weights[j], "dark orange", 'x')
 					plot.show_plot()
 
-			# Redistribute the aggregate model to each segment for the next epoch of training
-			for segment in self.segment_models:
-				self.segment_models[segment] = clone_model(self.aggregate_model)
+			# Redistribute the aggregate model to each segment for the next grand epoch of training, if not on last grand epoch
+			if i != self.num_grand_epochs-1:
+				for segment in self.segment_models:
+					self.segment_models[segment] = clone_model(self.aggregate_model)
 
 		# Conduct final testing of aggregate model
-		train_score = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
-		test_score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
-		print("Training accuracy:", train_score[1])
-		print("Test accuracy:", test_score[1])
+		train_score_merged = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
+		test_score_merged = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
+		print("Training accuracy with merged model:", train_score_merged[1])
+		print("Test accuracy with merged model:", test_score_merged[1])
+
+		# Consensus prediction approach (ensembling neural network models)
+		# score = 0
+		# for i in range(len(self.x_test)):
+		# 	x_test_example = self.x_test[i].reshape(1, 784)
+		# 	y_label_example = np.argmax(self.y_test[i])
+		# 	ensemble_predictions = {}
+		# 	for segment in self.segment_models:
+		# 		model = self.segment_models[segment]
+		# 		prediction = np.argmax(model.predict(x_test_example))
+		# 		ensemble_predictions[prediction] = ensemble_predictions.get(prediction, 0) + 1
+		# 	consensus_prediction = max(ensemble_predictions, key=ensemble_predictions.get)
+		# 	if consensus_prediction == y_label_example:
+		# 		score += 1
+		# print("Test accuracy with ensembling and consensus predictors (non-vectorized):", score/10000.0)
+
+		# Vectorized consensus prediction
+		train_score_consensus = self.consensus_predict(self.x_train, self.y_train)
+		test_score_consensus = self.consensus_predict(self.x_test, self.y_test)
+		print("Training accuracy with ensembling and consensus predictors:", train_score_consensus)
+		print("Test accuracy with ensembling and consensus predictors:", test_score_consensus)
+
+		# Maybe add aggregate model prediction to consensus as a tiebreaker
+		# have each model initialized at the same starting point, and then have it run for a few iterations so that they aren't too divergent
+		# output the results of the model to file
+		# progressively increase the number of iterations with each grand epoch
+
+		#Instead of blind consensus prediction, pick using intelligent strategies, like if model succeeded on this example before during training or something, obviously pick it (or a similar example, gauge similarity betw. examples), so a weighted consensus
+
+	def consensus_predict(self, x_test, y_test):
+		y_test_labels = np.argmax(y_test, axis=1)
+		ensemble_predictions = []
+		for segment in self.segment_models:
+			model = self.segment_models[segment]
+			prediction = list(np.argmax(model.predict(x_test), axis=1))
+			ensemble_predictions.append(prediction)
+		consensus_predictions = np.zeros((x_test.shape[0]))
+		ensemble_predictions = np.array(ensemble_predictions)
+		for i in range(ensemble_predictions.shape[1]):
+			column = list(ensemble_predictions[:, i])
+			consensus_predictions[i] = int(self.utils.mode(column).item())
+		diff_predictions = consensus_predictions - y_test_labels
+		misclassifications = 0
+		for i in diff_predictions:
+			if i != 0:
+				misclassifications += 1
+		return (x_test.shape[0] - misclassifications)/float(x_test.shape[0])
+
+
+class utilities:
 
 	def random_color(self):
-	    return "#"+''.join([random.choice('0123456789ABCDEF') for i in range(6)])
+		return "#"+''.join([random.choice('0123456789ABCDEF') for i in range(6)])
+
+	def mode(self, L):
+		SL = sorted((x, i) for i, x in enumerate(L))
+		groups = itertools.groupby(SL, key=operator.itemgetter(0))
+		def auxfun(g):
+			item, iterable = g
+			count = 0
+			min_index = len(L)
+			for _, where in iterable:
+				count += 1
+				min_index = min(min_index, where)
+			return count, -min_index
+		return max(groups, key=auxfun)[0]
 
 
 class pca_weights_plotter:
