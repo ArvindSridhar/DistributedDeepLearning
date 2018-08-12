@@ -74,3 +74,23 @@
 
 
 #colors = iter(['red', 'blue', 'green', 'black', 'yellow', 'teal', 'magenta', 'pink', 'skyblue', 'cyan'])
+
+
+
+
+
+
+# Consensus prediction approach (ensembling neural network models)
+		# score = 0
+		# for i in range(len(self.x_test)):
+		# 	x_test_example = self.x_test[i].reshape(1, 784)
+		# 	y_label_example = np.argmax(self.y_test[i])
+		# 	ensemble_predictions = {}
+		# 	for segment in self.segment_models:
+		# 		model = self.segment_models[segment]
+		# 		prediction = np.argmax(model.predict(x_test_example))
+		# 		ensemble_predictions[prediction] = ensemble_predictions.get(prediction, 0) + 1
+		# 	consensus_prediction = max(ensemble_predictions, key=ensemble_predictions.get)
+		# 	if consensus_prediction == y_label_example:
+		# 		score += 1
+		# print("Test accuracy with ensembling and consensus predictors (non-vectorized):", score/10000.0)

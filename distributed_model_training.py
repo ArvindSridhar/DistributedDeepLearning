@@ -21,9 +21,9 @@ class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.num_grand_epochs = 2 #Can tune
+		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 10 #Can tune
+		self.num_segments = 50 #Can tune
 		self.num_iters_on_segment = 3 #Can tune
 		self.utils = utilities()
 		self.get_data()
@@ -116,9 +116,9 @@ class distributed_model_training:
 				optimizer=Adam(),
 				metrics=['accuracy'])
 
-			# Evaluate aggregate model on the test set
-			score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
-			print(score)
+			# # Evaluate aggregate model on the test set
+			# score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
+			# print("Aggregate model accuracy on test set:", score[1])
 
 			# Plot the average model's weights and show the plots, only if the algorithm is on its last grand epoch
 			if i == self.num_grand_epochs+1:
@@ -133,56 +133,117 @@ class distributed_model_training:
 				for segment in self.segment_models:
 					self.segment_models[segment] = clone_model(self.aggregate_model)
 
-		# Conduct final testing of aggregate model
-		train_score_merged = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=1)
-		test_score_merged = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
-		print("Training accuracy with merged model:", train_score_merged[1])
-		print("Test accuracy with merged model:", test_score_merged[1])
+		# Conduct final testing with the weight-average aggregate model approach (non-ensemble)
+		print('')
+		print('-------------------------------------------------------------------------------------------------')
+		train_score_merged = self.aggregate_model.evaluate(self.x_train, self.y_train, verbose=0)
+		test_score_merged = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=0)
+		print("Training set prediction accuracy with aggregate model:", train_score_merged[1])
+		print("Test set prediction accuracy with aggregate model:", test_score_merged[1])
 
-		# Consensus prediction approach (ensembling neural network models)
-		# score = 0
-		# for i in range(len(self.x_test)):
-		# 	x_test_example = self.x_test[i].reshape(1, 784)
-		# 	y_label_example = np.argmax(self.y_test[i])
-		# 	ensemble_predictions = {}
-		# 	for segment in self.segment_models:
-		# 		model = self.segment_models[segment]
-		# 		prediction = np.argmax(model.predict(x_test_example))
-		# 		ensemble_predictions[prediction] = ensemble_predictions.get(prediction, 0) + 1
-		# 	consensus_prediction = max(ensemble_predictions, key=ensemble_predictions.get)
-		# 	if consensus_prediction == y_label_example:
-		# 		score += 1
-		# print("Test accuracy with ensembling and consensus predictors (non-vectorized):", score/10000.0)
+		# Conduct final testing with the consensus prediction ensemble approach, [include aggregate model in the ensemble]
+		# self.segment_models['agg'] = self.aggregate_model
+		print('-------------------------------------------------------------------------------------------------')
+		train_score_consensus = self.consensus_predict_ensemble_evaluate(self.x_train, self.y_train)
+		test_score_consensus = self.consensus_predict_ensemble_evaluate(self.x_test, self.y_test)
+		print("Training set prediction accuracy with consensus prediction ensembling:", train_score_consensus)
+		print("Test set prediction accuracy with consensus prediction ensembling:", test_score_consensus)
 
-		# Vectorized consensus prediction, include aggregate model in the ensemble
-		self.segment_models['agg'] = self.aggregate_model
-		train_score_consensus = self.consensus_predict(self.x_train, self.y_train)
-		test_score_consensus = self.consensus_predict(self.x_test, self.y_test)
-		print("Training accuracy with ensembling and consensus predictors:", train_score_consensus)
-		print("Test accuracy with ensembling and consensus predictors:", test_score_consensus)
+		# Conduct final testing with the neural boosted ensemble approach
+		print('-------------------------------------------------------------------------------------------------')
+		self.neural_boosted_ensemble_train()
+		train_score_neural = self.neural_boosted_ensemble_evaluate(self.x_train, self.y_train)
+		test_score_neural = self.neural_boosted_ensemble_evaluate(self.x_test, self.y_test)
+		print("Training set prediction accuracy with neural boosted ensembling:", train_score_neural)
+		print("Test set prediction accuracy with neural boosted ensembling:", test_score_neural)
+		print('-------------------------------------------------------------------------------------------------')
 
 		# Maybe add aggregate model prediction to consensus as a tiebreaker
 		# have each model initialized at the same starting point, and then have it run for a few iterations so that they aren't too divergent
 		# output the results of the model to file
 		# progressively increase the number of iterations with each grand epoch
-
 		#Instead of blind consensus prediction, pick using intelligent strategies, like if model succeeded on this example before during training or something, obviously pick it (or a similar example, gauge similarity betw. examples), so a weighted consensus
 
-	def consensus_predict(self, x_test, y_test):
-		y_test_labels = np.argmax(y_test, axis=1)
+	def get_ensemble_predictions(self, x_input):
+		"""
+			Gives you the classification predictions for some x_input from each trained segment model
+			@param: x_input of the shape (num_test_examples, num_features)
+			@return: an output of the shape (num_segments, num_test_examples). Predict output always squashed!
+		"""
 		ensemble_predictions = []
-		for segment in self.segment_models:
+		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
-			prediction = list(np.argmax(model.predict(x_test), axis=1))
+			prediction = list(np.argmax(model.predict(x_input), axis=1))
 			ensemble_predictions.append(prediction)
-		consensus_predictions = np.zeros((x_test.shape[0]))
-		ensemble_predictions = np.array(ensemble_predictions)
+		return np.array(ensemble_predictions)
+
+	def consensus_predict_ensemble_evaluate(self, x_input, y_output):
+		y_output_labels = np.argmax(y_output, axis=1)
+		consensus_predictions = np.zeros((x_input.shape[0]))
+		ensemble_predictions = self.get_ensemble_predictions(x_input)
 		for i in range(ensemble_predictions.shape[1]):
 			column = list(ensemble_predictions[:, i])
 			consensus_predictions[i] = int(self.utils.mode(column).item())
-		diff_predictions = consensus_predictions - y_test_labels
+		diff_predictions = consensus_predictions - y_output_labels
 		misclassifications = np.count_nonzero(diff_predictions)
-		return (x_test.shape[0] - misclassifications)/float(x_test.shape[0])
+		return (x_input.shape[0] - misclassifications)/float(x_input.shape[0])
+
+	def neural_boosted_ensemble_train(self):
+		"""
+			Approach: you use part of the test set to gauge the veracity of each model, intelligently
+			of course using a neural network to learn on its own how trustworthy each model is. Each
+			model generates its own prediction for some input image, and these predictions are then
+			run through the neural ensemble model and a final prediction is given
+		"""
+		# Break up the test set into the train_ensemble and test_ensemble sets
+		test_set_size = self.x_test.shape[0]//2
+		x_train_ensemble, y_train_ensemble = self.x_test[0:test_set_size], self.y_test[0:test_set_size]
+		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
+
+		# Define the neural ensemble model as a simple deep neural network
+		self.neural_ensemble_model = Sequential()
+		self.neural_ensemble_model.add(Dense(512, activation='relu', input_shape=(self.num_segments,)))
+		self.neural_ensemble_model.add(Dropout(0.2))
+		self.neural_ensemble_model.add(Dense(512, activation='relu'))
+		self.neural_ensemble_model.add(Dropout(0.2))
+		self.neural_ensemble_model.add(Dense(self.num_classes, activation='softmax'))
+
+		# Compile the neural ensemble model
+		self.neural_ensemble_model.compile(loss='categorical_crossentropy',
+			optimizer=Adam(),
+			metrics=['accuracy'])
+
+		# Train the neural ensemble model with the train_ensemble data
+		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble).T
+		history = self.neural_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
+	        batch_size=self.batch_size,
+	        epochs=60,
+	        verbose=0)
+
+		# Validate the neural ensemble model with the test_ensemble data
+		test_ensemble_predictions = self.get_ensemble_predictions(x_test_ensemble).T
+		validation_score = self.neural_ensemble_model.evaluate(test_ensemble_predictions, y_test_ensemble, verbose=0)
+		print("Neural ensemble model accuracy on ensemble test data:", validation_score[1])
+
+		#testing
+		test_ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble).T
+		validation_score = self.neural_ensemble_model.evaluate(test_ensemble_predictions, y_train_ensemble, verbose=0)
+		print(validation_score)
+
+		#Think in terms of a single val example: input this 1 by 784 row vector (one image),
+		#each model outputs a prediction, predictions multiplied by weights, softmaxed at the end to get final prediction
+
+		#Convolutional layer run over the 2D array output that is ensemble_predictions? Maybe run convolution layer over
+		#the actual segment models themselves, over their weight vectors, to get compression?
+		#-Nope, because this is really just a collection of training examples, can't really do this
+
+		#You can run the training, val, and test data on this, but want to default to using the test data (last 5000 examples)
+
+		#HYPERPARAM TUNING: increase # segments, decrease # layers, increase # epochs, dropout, size of each layer
+
+	def neural_boosted_ensemble_evaluate(self, x_input, y_output):
+		ensemble_predictions = self.get_ensemble_predictions(x_input).T
+		return self.neural_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=0)[1]
 
 
 class utilities:
