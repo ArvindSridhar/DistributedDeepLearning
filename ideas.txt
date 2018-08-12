@@ -42,3 +42,9 @@ Compute weighted average with predetermined weightiness: first one gets 50% of s
 2 segments: it merges nicely and maintains same accuracy because the merged weights still closely resemble the weights of both segments
 
 10 segments: it doesn’t merge nicely because the merged weights are averages of a whole bunch of segments, at the end doesn’t look like any of them
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+Is merging models to create a final single model actually worth it?
+
+Can treat it like random forest: have n diff. models from each of n segments, get a piece of test data, have each model vote on classification/regression, output the consensus vote

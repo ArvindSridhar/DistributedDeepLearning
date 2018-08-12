@@ -1,1 +1,3 @@
 https://blog.skymind.ai/distributed-deep-learning-part-1-an-introduction-to-distributed-training-of-neural-networks/
+https://www.sciencedirect.com/science/article/pii/S000437020200190X
+https://towardsdatascience.com/ensembling-convnets-using-keras-237d429157eb

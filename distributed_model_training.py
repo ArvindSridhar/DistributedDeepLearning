@@ -21,10 +21,10 @@ class distributed_model_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.num_grand_epochs = 3 #Can tune
+		self.num_grand_epochs = 2 #Can tune
 		self.batch_size = 100 #Can tune
 		self.num_segments = 10 #Can tune
-		self.num_iters_on_segment = 4 #Can tune
+		self.num_iters_on_segment = 3 #Can tune
 		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
@@ -154,7 +154,8 @@ class distributed_model_training:
 		# 		score += 1
 		# print("Test accuracy with ensembling and consensus predictors (non-vectorized):", score/10000.0)
 
-		# Vectorized consensus prediction
+		# Vectorized consensus prediction, include aggregate model in the ensemble
+		self.segment_models['agg'] = self.aggregate_model
 		train_score_consensus = self.consensus_predict(self.x_train, self.y_train)
 		test_score_consensus = self.consensus_predict(self.x_test, self.y_test)
 		print("Training accuracy with ensembling and consensus predictors:", train_score_consensus)
@@ -180,10 +181,7 @@ class distributed_model_training:
 			column = list(ensemble_predictions[:, i])
 			consensus_predictions[i] = int(self.utils.mode(column).item())
 		diff_predictions = consensus_predictions - y_test_labels
-		misclassifications = 0
-		for i in diff_predictions:
-			if i != 0:
-				misclassifications += 1
+		misclassifications = np.count_nonzero(diff_predictions)
 		return (x_test.shape[0] - misclassifications)/float(x_test.shape[0])
 
 
