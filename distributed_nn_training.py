@@ -299,4 +299,4 @@ class pca_weights_plotter:
 		plt.show()
 
 
-model_instance = distributed_model_training()
+model_instance = distributed_nn_training()

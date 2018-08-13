@@ -23,7 +23,7 @@ class distributed_cnn_training:
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 10 #Can tune
+		self.num_segments = 3 #Can tune
 		self.num_iters_on_segment = 3 #Can tune
 		self.utils = utilities()
 		self.get_data()
@@ -40,7 +40,7 @@ class distributed_cnn_training:
 		(x_train, y_train), (x_test, y_test) = mnist.load_data()
 		self.img_rows, self.img_cols = x_train.shape[1], x_train.shape[2]
 		x_train = x_train.reshape(x_train.shape[0], self.img_rows, self.img_cols, 1)
-	    x_test = x_test.reshape(x_test.shape[0], self.img_rows, self.img_cols, 1)
+		x_test = x_test.reshape(x_test.shape[0], self.img_rows, self.img_cols, 1)
 		self.y_train = y_train.reshape(60000, 1)
 		self.y_test = y_test.reshape(10000, 1)
 		self.x_train = x_train.astype('float32')
@@ -305,4 +305,4 @@ class pca_weights_plotter:
 		plt.show()
 
 
-model_instance = distributed_model_training()
+model_instance = distributed_cnn_training()
