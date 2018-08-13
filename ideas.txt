@@ -48,3 +48,38 @@ Compute weighted average with predetermined weightiness: first one gets 50% of s
 Is merging models to create a final single model actually worth it?
 
 Can treat it like random forest: have n diff. models from each of n segments, get a piece of test data, have each model vote on classification/regression, output the consensus vote
+
+
+
+
+
+
+
+
+
+
+# Maybe add aggregate model prediction to consensus as a tiebreaker
+# have each model initialized at the same starting point, and then have it run for a few iterations so that they aren't too divergent
+# output the results of the model to file
+# progressively increase the number of iterations with each grand epoch
+#Instead of blind consensus prediction, pick using intelligent strategies, like if model succeeded on this example before during training or something, obviously pick it (or a similar example, gauge similarity betw. examples), so a weighted consensus
+
+
+
+
+
+
+
+
+
+
+
+
+#Think in terms of a single val example: input this 1 by 784 row vector (one image),
+#each model outputs a prediction, predictions multiplied by weights, softmaxed at the end to get final prediction
+
+#Convolutional layer run over the 2D array output that is ensemble_predictions? Maybe run convolution layer over
+#the actual segment models themselves, over their weight vectors, to get compression?
+#-Nope, because this is really just a collection of training examples, can't really do this
+
+#You can run the training, val, and test data on this, but want to default to using the test data (last 5000 examples)
