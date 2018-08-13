@@ -17,7 +17,7 @@ import random
 import itertools
 import operator
 
-class distributed_model_training:
+class distributed_nn_training:
 
 	def __init__(self):
 		self.num_classes = 10
@@ -28,7 +28,7 @@ class distributed_model_training:
 		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
-		self.define_models()
+		self.define_segment_models()
 		self.train_model_aggregate()
 
 	def tensorflow_test(self):
@@ -58,17 +58,20 @@ class distributed_model_training:
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
 
-	def define_models(self):
+	def get_new_model(self):
+		model = Sequential()
+		model.add(Dense(512, activation='relu', input_shape=(784,)))
+		model.add(Dropout(0.2))
+		model.add(Dense(512, activation='relu'))
+		model.add(Dropout(0.2))
+		model.add(Dense(self.num_classes, activation='softmax'))
+		return model
+
+	def define_segment_models(self):
 		self.segment_models = {}
 		self.segment_colors = {}
 		for i in range(self.num_segments):
-			model = Sequential()
-			model.add(Dense(512, activation='relu', input_shape=(784,)))
-			model.add(Dropout(0.2))
-			model.add(Dense(512, activation='relu'))
-			model.add(Dropout(0.2))
-			model.add(Dense(self.num_classes, activation='softmax'))
-			self.segment_models["seg"+str(i)] = model
+			self.segment_models["seg"+str(i)] = self.get_new_model()
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
 	def train_model_aggregate(self):
@@ -77,12 +80,7 @@ class distributed_model_training:
 			print("Grand Epoch:", i+1, "/", self.num_grand_epochs)
 			
 			# Re-define the aggregate model (stored on the master node, and ultimately returned), also re-initialize its weights
-			self.aggregate_model = Sequential()
-			self.aggregate_model.add(Dense(512, activation='relu', input_shape=(784,)))
-			self.aggregate_model.add(Dropout(0.2))
-			self.aggregate_model.add(Dense(512, activation='relu'))
-			self.aggregate_model.add(Dropout(0.2))
-			self.aggregate_model.add(Dense(self.num_classes, activation='softmax'))
+			self.aggregate_model = self.get_new_model()
 
 			# Define a plotting object for every numpy array that comprises the weights of our neural network, only if the algorithm is on its last grand epoch
 			if i == self.num_grand_epochs+1:
