@@ -23,7 +23,7 @@ class distributed_nn_training:
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 10 #Can tune
+		self.num_segments = 50 #Can tune
 		self.num_iters_on_segment = 3 #Can tune
 		self.utils = utilities()
 		self.get_data()
@@ -95,10 +95,10 @@ class distributed_nn_training:
 					optimizer=Adam(),
 					metrics=['accuracy'])
 				history = model_seg.fit(x_train_seg, y_train_seg,
-			        batch_size=self.batch_size,
-			        epochs=self.num_iters_on_segment,
-			        verbose=1,
-			        validation_data=(self.x_test, self.y_test))
+					batch_size=self.batch_size,
+					epochs=self.num_iters_on_segment,
+					verbose=1,
+					validation_data=(self.x_test, self.y_test))
 				if i == self.num_grand_epochs+1:
 					weights = model_seg.get_weights()
 					for j in range(len(weights)):
@@ -215,9 +215,9 @@ class distributed_nn_training:
 		# Train the neural ensemble model with the train_ensemble data
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble).T
 		history = self.neural_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
-	        batch_size=self.batch_size,
-	        epochs=60,
-	        verbose=0)
+			batch_size=self.batch_size,
+			epochs=60,
+			verbose=0)
 
 		# Compute the accuracy of the neural ensemble model with the train_ensemble data
 		training_score = self.neural_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
@@ -229,8 +229,8 @@ class distributed_nn_training:
 
 		# HYPERPARAM TUNING: increase # segments, decrease # layers, increase # epochs, dropout, size of each layer
 		# ISSUES
-		# 1) Too little data being trained on vs tested on (but that is also a prob with each indiv. segment)
-		# 2) Too complex of a model, have overfitting issues, too many epochs
+		# 1) Too little data being trained on vs tested on (but that is also a prob with each indiv. segment) -- tested, not a problem really
+		# 2) Too complex of a model, have overfitting issues, too many epochs -- tested, not a problem really
 		# 3) Too long to do: instead, intelligently choose only a subset of the NNs to use for each predict, preferrably use a subset of NNs that are predicted to produce the most accurate result for a given input
 
 	def neural_boosted_ensemble_evaluate(self, x_input, y_output):
