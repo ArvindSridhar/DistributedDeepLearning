@@ -711,3 +711,69 @@ Training accuracy with merged model: 0.6528666666666667
 Test accuracy with merged model: 0.6612
 Training accuracy with ensembling and consensus predictors: 0.956183333333
 Test accuracy with ensembling and consensus predictors: 0.9555
+
+
+
+
+
+
+# Testing whether I could expand the size of the test set and still have the neural ensemble predict accurately (reduced size of training set)
+
+Using TensorFlow backend.
+(20000, 784)
+(20000, 10)
+Grand Epoch: 1 / 1
+Segment: seg0
+Train on 8000 samples, validate on 10000 samples
+Epoch 1/3
+8000/8000 [==============================] - 1s 182us/step - loss: 0.5777 - acc: 0.8293 - val_loss: 0.2744 - val_acc: 0.9167
+Epoch 2/3
+8000/8000 [==============================] - 1s 135us/step - loss: 0.2156 - acc: 0.9337 - val_loss: 0.2023 - val_acc: 0.9420
+Epoch 3/3
+8000/8000 [==============================] - 1s 126us/step - loss: 0.1447 - acc: 0.9571 - val_loss: 0.1758 - val_acc: 0.9471
+Segment: seg1
+Train on 8000 samples, validate on 10000 samples
+Epoch 1/3
+8000/8000 [==============================] - 1s 166us/step - loss: 0.6168 - acc: 0.8119 - val_loss: 0.2585 - val_acc: 0.9268
+Epoch 2/3
+8000/8000 [==============================] - 1s 131us/step - loss: 0.2440 - acc: 0.9278 - val_loss: 0.1897 - val_acc: 0.9419
+Epoch 3/3
+8000/8000 [==============================] - 1s 138us/step - loss: 0.1528 - acc: 0.9530 - val_loss: 0.1693 - val_acc: 0.9475
+Segment: seg2
+Train on 8000 samples, validate on 10000 samples
+Epoch 1/3
+8000/8000 [==============================] - 1s 162us/step - loss: 0.5881 - acc: 0.8260 - val_loss: 0.2873 - val_acc: 0.9115
+Epoch 2/3
+8000/8000 [==============================] - 1s 135us/step - loss: 0.2350 - acc: 0.9283 - val_loss: 0.2187 - val_acc: 0.9337
+Epoch 3/3
+8000/8000 [==============================] - 1s 128us/step - loss: 0.1517 - acc: 0.9526 - val_loss: 0.1787 - val_acc: 0.9455
+Segment: seg3
+Train on 8000 samples, validate on 10000 samples
+Epoch 1/3
+8000/8000 [==============================] - 2s 200us/step - loss: 0.6116 - acc: 0.8165 - val_loss: 0.2699 - val_acc: 0.9188
+Epoch 2/3
+8000/8000 [==============================] - 1s 135us/step - loss: 0.2408 - acc: 0.9273 - val_loss: 0.2044 - val_acc: 0.9374
+Epoch 3/3
+8000/8000 [==============================] - 1s 126us/step - loss: 0.1495 - acc: 0.9555 - val_loss: 0.1834 - val_acc: 0.9405
+Segment: seg4
+Train on 8000 samples, validate on 10000 samples
+Epoch 1/3
+8000/8000 [==============================] - 1s 175us/step - loss: 0.6146 - acc: 0.8094 - val_loss: 0.2634 - val_acc: 0.9237
+Epoch 2/3
+8000/8000 [==============================] - 1s 129us/step - loss: 0.2277 - acc: 0.9319 - val_loss: 0.2184 - val_acc: 0.9327
+Epoch 3/3
+8000/8000 [==============================] - 1s 118us/step - loss: 0.1544 - acc: 0.9554 - val_loss: 0.1856 - val_acc: 0.9433
+
+-------------------------------------------------------------------------------------------------
+Training set prediction accuracy with aggregate model: 0.834825
+Test set prediction accuracy with aggregate model: 0.8353
+-------------------------------------------------------------------------------------------------
+Training set prediction accuracy with consensus prediction ensembling: 0.95865
+Test set prediction accuracy with consensus prediction ensembling: 0.956
+-------------------------------------------------------------------------------------------------
+Neural ensemble model accuracy on ensemble training data: 0.9556
+Neural ensemble model accuracy on ensemble test data: 0.9602
+Training set prediction accuracy with neural boosted ensembling: 0.9436
+Test set prediction accuracy with neural boosted ensembling: 0.9579
+Test set2 prediction accuracy with neural boosted ensembling: 0.9365
+-------------------------------------------------------------------------------------------------
