@@ -39,3 +39,36 @@ Neural ensemble model accuracy on ensemble test data: 0.9908
 Training set prediction accuracy with neural boosted ensembling: 0.98325
 Test set prediction accuracy with neural boosted ensembling: 0.9866
 -------------------------------------------------------------------------------------------------
+
+# Training on CIFAR10
+
+Using TensorFlow backend.
+Downloading data from https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+170500096/170498071 [==============================] - 140s 1us/step
+170508288/170498071 [==============================] - 140s 1us/step
+Grand Epoch: 1 / 1
+Segment: seg0
+Train on 25000 samples, validate on 10000 samples
+Epoch 1/2
+25000/25000 [==============================] - 96s 4ms/step - loss: 1.6735 - acc: 0.3920 - val_loss: 1.3309 - val_acc: 0.5232
+Epoch 2/2
+25000/25000 [==============================] - 102s 4ms/step - loss: 1.2641 - acc: 0.5466 - val_loss: 1.1538 - val_acc: 0.5872
+Segment: seg1
+Train on 25000 samples, validate on 10000 samples
+Epoch 1/2
+25000/25000 [==============================] - 78s 3ms/step - loss: 1.7322 - acc: 0.3719 - val_loss: 1.3707 - val_acc: 0.5090
+Epoch 2/2
+25000/25000 [==============================] - 66s 3ms/step - loss: 1.3207 - acc: 0.5324 - val_loss: 1.2005 - val_acc: 0.5742
+
+-------------------------------------------------------------------------------------------------
+Training set prediction accuracy with aggregate model: 0.55
+Test set prediction accuracy with aggregate model: 0.5271
+-------------------------------------------------------------------------------------------------
+Training set prediction accuracy with consensus prediction ensembling: 0.60982
+Test set prediction accuracy with consensus prediction ensembling: 0.5872
+-------------------------------------------------------------------------------------------------
+Neural ensemble model accuracy on ensemble training data: 0.6022
+Neural ensemble model accuracy on ensemble test data: 0.5834
+Training set prediction accuracy with neural boosted ensembling: 0.61424
+Test set prediction accuracy with neural boosted ensembling: 0.5928
+-------------------------------------------------------------------------------------------------
