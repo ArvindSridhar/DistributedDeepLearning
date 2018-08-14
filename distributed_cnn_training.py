@@ -3,7 +3,7 @@ import tensorflow as tf
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import keras
-from keras.datasets import mnist
+from keras.datasets import mnist, cifar10
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import RMSprop, Adam, SGD
@@ -23,8 +23,8 @@ class distributed_cnn_training:
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 3 #Can tune
-		self.num_iters_on_segment = 3 #Can tune
+		self.num_segments = 2 #Can tune
+		self.num_iters_on_segment = 2 #Can tune
 		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
@@ -38,11 +38,12 @@ class distributed_cnn_training:
 
 	def get_data(self):
 		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		self.img_rows, self.img_cols = x_train.shape[1], x_train.shape[2]
-		x_train = x_train.reshape(x_train.shape[0], self.img_rows, self.img_cols, 1)
-		x_test = x_test.reshape(x_test.shape[0], self.img_rows, self.img_cols, 1)
-		self.y_train = y_train.reshape(60000, 1)
-		self.y_test = y_test.reshape(10000, 1)
+		self.img_rows, self.img_cols, self.num_channels = x_train.shape[1], x_train.shape[2], 1
+		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
+		x_train = x_train.reshape(x_train.shape[0], self.img_rows, self.img_cols, self.num_channels)
+		x_test = x_test.reshape(x_test.shape[0], self.img_rows, self.img_cols, self.num_channels)
+		self.y_train = y_train.reshape(self.num_training_examples, 1)
+		self.y_test = y_test.reshape(self.num_test_examples, 1)
 		self.x_train = x_train.astype('float32')
 		self.x_test = x_test.astype('float32')
 		self.x_train /= 255
@@ -54,7 +55,7 @@ class distributed_cnn_training:
 	def distribute_data(self):
 		# Shuffle? np.random.shuffle(self.x_train)
 		self.segment_batches = {}
-		data_per_segment = int(math.floor(60000/self.num_segments))
+		data_per_segment = int(math.floor(self.num_training_examples/self.num_segments))
 		for i in range(self.num_segments):
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
@@ -62,8 +63,8 @@ class distributed_cnn_training:
 	def get_new_model(self):
 		model = Sequential()
 		model.add(Conv2D(32, kernel_size=(3, 3),
-             activation='relu',
-             input_shape=(self.img_rows, self.img_cols, 1,)))
+			activation='relu',
+			input_shape=(self.img_rows, self.img_cols, self.num_channels,)))
 		model.add(Conv2D(64, (3, 3), activation='relu'))
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 		model.add(Dropout(0.25))
@@ -101,10 +102,10 @@ class distributed_cnn_training:
 					optimizer=Adam(),
 					metrics=['accuracy'])
 				history = model_seg.fit(x_train_seg, y_train_seg,
-			        batch_size=self.batch_size,
-			        epochs=self.num_iters_on_segment,
-			        verbose=1,
-			        validation_data=(self.x_test, self.y_test))
+					batch_size=self.batch_size,
+					epochs=self.num_iters_on_segment,
+					verbose=1,
+					validation_data=(self.x_test, self.y_test))
 				if i == self.num_grand_epochs+1:
 					weights = model_seg.get_weights()
 					for j in range(len(weights)):
@@ -221,9 +222,9 @@ class distributed_cnn_training:
 		# Train the neural ensemble model with the train_ensemble data
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble).T
 		history = self.neural_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
-	        batch_size=self.batch_size,
-	        epochs=60,
-	        verbose=0)
+			batch_size=self.batch_size,
+			epochs=60,
+			verbose=0)
 
 		# Compute the accuracy of the neural ensemble model with the train_ensemble data
 		training_score = self.neural_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
