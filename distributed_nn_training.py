@@ -70,8 +70,9 @@ class distributed_nn_training:
 	def define_segment_models(self):
 		self.segment_models = {}
 		self.segment_colors = {}
+		model = self.get_new_model()
 		for i in range(self.num_segments):
-			self.segment_models["seg"+str(i)] = self.get_new_model()
+			self.segment_models["seg"+str(i)] = clone_model(model)
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
 	def train_model_aggregate(self):
@@ -115,9 +116,9 @@ class distributed_nn_training:
 				optimizer=Adam(),
 				metrics=['accuracy'])
 
-			# # Evaluate aggregate model on the test set
-			# score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
-			# print("Aggregate model accuracy on test set:", score[1])
+			# Evaluate aggregate model on the test set
+			score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
+			print("Aggregate model accuracy on test set:", score[1])
 
 			# Plot the average model's weights and show the plots, only if the algorithm is on its last grand epoch
 			if i == self.num_grand_epochs+1:
