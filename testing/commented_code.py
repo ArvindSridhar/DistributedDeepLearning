@@ -239,3 +239,19 @@
 # 		misclassifications = np.count_nonzero(diff_predictions)
 # 		return (x_input.shape[0] - misclassifications)/float(x_input.shape[0])
 # 		#return self.neural_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=0)[1]
+
+
+
+
+
+
+
+
+
+
+
+# Testing
+# self.testingstuffout_x = self.x_train[40000:60000]
+# self.x_train = self.x_train[0:40000]
+# self.testingstuffout_y = self.y_train[40000:60000]
+# self.y_train = self.y_train[0:40000]
