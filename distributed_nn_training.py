@@ -38,10 +38,13 @@ class distributed_nn_training:
 
 	def get_data(self):
 		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		x_train = x_train.reshape(60000, 784)
-		x_test = x_test.reshape(10000, 784)
-		self.y_train = y_train.reshape(60000, 1)
-		self.y_test = y_test.reshape(10000, 1)
+		self.img_rows, self.img_cols, self.num_channels = x_train.shape[1], x_train.shape[2], 1
+		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
+		self.num_features = self.img_rows * self.img_cols
+		x_train = x_train.reshape(self.num_training_examples, self.num_features)
+		x_test = x_test.reshape(self.num_test_examples, self.num_features)
+		self.y_train = y_train.reshape(self.num_training_examples, 1)
+		self.y_test = y_test.reshape(self.num_test_examples, 1)
 		self.x_train = x_train.astype('float32')
 		self.x_test = x_test.astype('float32')
 		self.x_train /= 255
@@ -53,14 +56,14 @@ class distributed_nn_training:
 	def distribute_data(self):
 		# Shuffle? np.random.shuffle(self.x_train)
 		self.segment_batches = {}
-		data_per_segment = int(math.floor(60000/self.num_segments))
+		data_per_segment = int(math.floor(self.num_training_examples/self.num_segments))
 		for i in range(self.num_segments):
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
 
 	def get_new_model(self):
 		model = Sequential()
-		model.add(Dense(512, activation='relu', input_shape=(784,)))
+		model.add(Dense(512, activation='relu', input_shape=(self.num_features,)))
 		model.add(Dropout(0.2))
 		model.add(Dense(512, activation='relu'))
 		model.add(Dropout(0.2))
@@ -72,6 +75,7 @@ class distributed_nn_training:
 		self.segment_colors = {}
 		model = self.get_new_model()
 		for i in range(self.num_segments):
+			# Initialize each segment model using the same randomly-selected initial weights
 			self.segment_models["seg"+str(i)] = clone_model(model)
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
