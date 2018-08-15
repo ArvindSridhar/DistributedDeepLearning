@@ -77,8 +77,10 @@ class distributed_cnn_training:
 	def define_segment_models(self):
 		self.segment_models = {}
 		self.segment_colors = {}
+		model = self.get_new_model()
 		for i in range(self.num_segments):
-			self.segment_models["seg"+str(i)] = self.get_new_model()
+			# Initialize each segment model using the same randomly-selected initial weights
+			self.segment_models["seg"+str(i)] = clone_model(model)
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
 	def train_model_aggregate(self):
