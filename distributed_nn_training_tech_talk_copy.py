@@ -5,7 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential
-from keras.layers import Dense, Dropout
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import RMSprop, Adam, SGD
 from keras.models import clone_model
 import numpy as np
@@ -16,16 +16,17 @@ from scipy import linalg as la
 import random
 import itertools
 import operator
+# import autokeras as ak
 # import sklearn.utils.shuffle
 
 class distributed_nn_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.num_grand_epochs = 1 #Can tune
+		self.num_grand_epochs = 10 #Can tune
 		self.batch_size = 100 #Can tune
 		self.num_segments = 10 #Can tune
-		self.num_iters_on_segment = 5 #Can tune
+		self.num_iters_on_segment = 1 #Can tune
 		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
@@ -64,9 +65,9 @@ class distributed_nn_training:
 
 	def get_new_model(self):
 		model = Sequential()
-		model.add(Dense(512, activation='relu', input_shape=(784,)))
+		model.add(Dense(5, activation='relu', input_shape=(self.num_features,)))
 		model.add(Dropout(0.2))
-		model.add(Dense(512, activation='relu'))
+		model.add(Dense(5, activation='relu'))
 		model.add(Dropout(0.2))
 		model.add(Dense(self.num_classes, activation='softmax'))
 		return model
@@ -104,6 +105,7 @@ class distributed_nn_training:
 					epochs=self.num_iters_on_segment,
 					verbose=1,
 					validation_data=(self.x_test, self.y_test))
+				self.utils.plot_loss_accuracy(history, segment)
 				if i == self.num_grand_epochs+1:
 					weights = model_seg.get_weights()
 					for j in range(len(weights)):
@@ -111,7 +113,7 @@ class distributed_nn_training:
 						plot.plot_data(weights[j], self.segment_colors[segment])
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
-			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32
+			avg_weights = sum([np.array(self.segment_models[segment].get_weights())
 							   for segment in self.segment_models])/self.num_segments
 			self.aggregate_model.set_weights(avg_weights)
 
@@ -166,7 +168,7 @@ class distributed_nn_training:
 
 		print('-------------------------------------------------------------------------------------------------')
 
-	def get_ensemble_predictions(self, x_input):
+	def get_ensemble_predictions(self, x_input, to_squash=True):
 		"""
 			Gives you the classification predictions for some x_input from each trained segment model
 			@param: x_input of the shape (num_test_examples, num_features)
@@ -175,13 +177,20 @@ class distributed_nn_training:
 		ensemble_predictions = []
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
-			prediction = list(np.argmax(model.predict(x_input), axis=1))
+			if not to_squash:
+				prediction = list(np.argmax(model.predict(x_input), axis=1))
+			else:
+				prediction = model.predict(x_input).T
+				print(prediction.shape)
 			ensemble_predictions.append(prediction)
-		return np.array(ensemble_predictions)
+		if not to_squash:
+			return np.array(ensemble_predictions)
+		ensemble_predictions = np.array(ensemble_predictions).T
+		return ensemble_predictions.reshape((x_input.shape[0], self.num_segments, 10, 1))
 
 	def consensus_predict_ensemble_evaluate(self, x_input, y_output):
 		y_output_labels = np.argmax(y_output, axis=1)
-		ensemble_predictions = self.get_ensemble_predictions(x_input)
+		ensemble_predictions = self.get_ensemble_predictions(x_input, False)
 		consensus_predictions = np.zeros((x_input.shape[0]))
 		for i in range(ensemble_predictions.shape[1]):
 			column = list(ensemble_predictions[:, i])
@@ -203,13 +212,24 @@ class distributed_nn_training:
 		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
 
 		# Define the neural ensemble model as a simple deep neural network
+		# self.neural_ensemble_model = Sequential()
+		# self.neural_ensemble_model.add(Dense(512, activation='relu', input_shape=(self.num_segments,)))
+		# self.neural_ensemble_model.add(Dropout(0.3))
+		# self.neural_ensemble_model.add(Dense(512, activation='relu'))
+		# self.neural_ensemble_model.add(Dropout(0.3))
+		# self.neural_ensemble_model.add(Dense(512, activation='relu'))
+		# self.neural_ensemble_model.add(Dropout(0.3))
+		# self.neural_ensemble_model.add(Dense(self.num_classes, activation='softmax'))
 		self.neural_ensemble_model = Sequential()
-		self.neural_ensemble_model.add(Dense(512, activation='relu', input_shape=(self.num_segments,)))
-		self.neural_ensemble_model.add(Dropout(0.3))
-		self.neural_ensemble_model.add(Dense(512, activation='relu'))
-		self.neural_ensemble_model.add(Dropout(0.3))
-		self.neural_ensemble_model.add(Dense(512, activation='relu'))
-		self.neural_ensemble_model.add(Dropout(0.3))
+		self.neural_ensemble_model.add(Conv2D(64, kernel_size=(3, 3),
+			activation='relu',
+			input_shape=(self.num_segments, 10, 1,)))
+		self.neural_ensemble_model.add(Conv2D(32, (5, 5), activation='relu'))
+		self.neural_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.neural_ensemble_model.add(Dropout(0.25))
+		self.neural_ensemble_model.add(Flatten())
+		self.neural_ensemble_model.add(Dense(128, activation='relu'))
+		self.neural_ensemble_model.add(Dropout(0.2))
 		self.neural_ensemble_model.add(Dense(self.num_classes, activation='softmax'))
 
 		# Compile the neural ensemble model
@@ -218,11 +238,12 @@ class distributed_nn_training:
 			metrics=['accuracy'])
 
 		# Train the neural ensemble model with the train_ensemble data
-		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble).T
+		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble)
+		print(ensemble_predictions.shape)
 		history = self.neural_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
 			epochs=60,
-			verbose=0)
+			verbose=1)
 
 		# Compute the accuracy of the neural ensemble model with the train_ensemble data
 		training_score = self.neural_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
@@ -239,7 +260,7 @@ class distributed_nn_training:
 		# 3) Too long to do: instead, intelligently choose only a subset of the NNs to use for each predict, preferrably use a subset of NNs that are predicted to produce the most accurate result for a given input
 
 	def neural_boosted_ensemble_evaluate(self, x_input, y_output):
-		ensemble_predictions = self.get_ensemble_predictions(x_input).T
+		ensemble_predictions = self.get_ensemble_predictions(x_input)
 		return self.neural_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=0)[1]
 
 
@@ -260,6 +281,22 @@ class utilities:
 				min_index = min(min_index, where)
 			return count, -min_index
 		return max(groups, key=auxfun)[0]
+
+	def plot_loss_accuracy(self, history, segment):
+		plt.semilogy(history.history['loss'])
+		plt.semilogy(history.history['val_loss'])
+		plt.title(str(segment) + ' model loss')
+		plt.ylabel('loss')
+		plt.xlabel('epoch')
+		plt.legend(['train', 'test'], loc='upper left')
+		plt.figure()
+		plt.plot(history.history['acc'])
+		plt.plot(history.history['val_acc'])
+		plt.title(str(segment) + ' model accuracy')
+		plt.ylabel('accuracy')
+		plt.xlabel('epoch')
+		plt.legend(['train', 'test'], loc='upper left')
+		plt.show()
 
 
 class pca_weights_plotter:
