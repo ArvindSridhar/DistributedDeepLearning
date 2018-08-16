@@ -63,9 +63,9 @@ class distributed_nn_training:
 
 	def get_new_model(self):
 		model = Sequential()
-		model.add(Dense(512, activation='relu', input_shape=(self.num_features,)))
+		model.add(Dense(5, activation='relu', input_shape=(self.num_features,)))
 		model.add(Dropout(0.2))
-		model.add(Dense(512, activation='relu'))
+		model.add(Dense(5, activation='relu'))
 		model.add(Dropout(0.2))
 		model.add(Dense(self.num_classes, activation='softmax'))
 		return model
@@ -167,6 +167,7 @@ class distributed_nn_training:
 		print('-------------------------------------------------------------------------------------------------')
 
 		# Conduct final testing with the convolutional boosted ensemble approach
+		assert(self.num_classes = self.num_segments, "Cannot perform convolutional ensembling at the moment")
 		self.convolutional_boosted_ensemble_train()
 		train_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_train, self.y_train)
 		test_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_test, self.y_test)
@@ -291,7 +292,7 @@ class distributed_nn_training:
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
-			epochs=40,
+			epochs=80,
 			verbose=0)
 
 		# Compute the accuracy of the convolutional ensemble model with the train_ensemble data
