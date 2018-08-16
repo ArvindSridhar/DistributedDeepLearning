@@ -22,9 +22,9 @@ class distributed_cnn_training:
 	def __init__(self):
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
-		self.batch_size = 100 #Can tune
-		self.num_segments = 2 #Can tune
-		self.num_iters_on_segment = 2 #Can tune
+		self.batch_size = 1000 #Can tune
+		self.num_segments = 10 #Can tune
+		self.num_iters_on_segment = 1 #Can tune
 		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
@@ -170,18 +170,34 @@ class distributed_cnn_training:
 
 		print('-------------------------------------------------------------------------------------------------')
 
-	def get_ensemble_predictions(self, x_input):
+		# Conduct final testing with the convolutional boosted ensemble approach
+		assert(self.num_classes = self.num_segments, "Cannot perform convolutional ensembling at the moment")
+		self.convolutional_boosted_ensemble_train()
+		train_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_train, self.y_train)
+		test_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_test, self.y_test)
+		print("Training set prediction accuracy with convolutional boosted ensembling:", train_score_convolutional)
+		print("Test set prediction accuracy with convolutional boosted ensembling:", test_score_convolutional)
+
+		print('-------------------------------------------------------------------------------------------------')
+
+	def get_ensemble_predictions(self, x_input, expand_array=False):
 		"""
 			Gives you the classification predictions for some x_input from each trained segment model
-			@param: x_input of the shape (num_test_examples, num_features)
-			@return: an output of the shape (num_segments, num_test_examples). Predict output always squashed!
+			@param: x_input of the shape (num_examples, num_features)
+			@return: an output of the shape (num_segments, num_examples) if expand_array is False
+			@return: an output of the shape (num_examples, num_segments, num_classes, num_channels) if expand_array is True
 		"""
 		ensemble_predictions = []
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
-			prediction = list(np.argmax(model.predict(x_input), axis=1))
+			if not expand_array:
+				prediction = list(np.argmax(model.predict(x_input), axis=1))
+			else:
+				prediction = model.predict(x_input).T
 			ensemble_predictions.append(prediction)
-		return np.array(ensemble_predictions)
+		if not expand_array:
+			return np.array(ensemble_predictions)
+		return np.array(ensemble_predictions).T.reshape((x_input.shape[0], self.num_segments, self.num_classes, 1))
 
 	def consensus_predict_ensemble_evaluate(self, x_input, y_output):
 		y_output_labels = np.argmax(y_output, axis=1)
@@ -197,7 +213,7 @@ class distributed_cnn_training:
 	def neural_boosted_ensemble_train(self):
 		"""
 			Approach: you use part of the test set to gauge the veracity of each model, intelligently
-			of course using a neural network to learn on its own how trustworthy each model is. Each
+			performed using a neural network to learn on its own how trustworthy each model is. Each
 			model generates its own prediction for some input image, and these predictions are then
 			run through the neural ensemble model and a final prediction is given.
 		"""
@@ -236,15 +252,58 @@ class distributed_cnn_training:
 		validation_score = self.neural_boosted_ensemble_evaluate(x_test_ensemble, y_test_ensemble)
 		print("Neural ensemble model accuracy on ensemble test data:", validation_score)
 
-		# HYPERPARAM TUNING: increase # segments, decrease # layers, increase # epochs, dropout, size of each layer
-		# ISSUES
-		# 1) Too little data being trained on vs tested on (but that is also a prob with each indiv. segment)
-		# 2) Too complex of a model, have overfitting issues, too many epochs
-		# 3) Too long to do: instead, intelligently choose only a subset of the NNs to use for each predict, preferrably use a subset of NNs that are predicted to produce the most accurate result for a given input
-
 	def neural_boosted_ensemble_evaluate(self, x_input, y_output):
 		ensemble_predictions = self.get_ensemble_predictions(x_input).T
 		return self.neural_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=0)[1]
+
+	def convolutional_boosted_ensemble_train(self):
+		"""
+			Approach: you use part of the test set to gauge the veracity of each model, intelligently
+			performed using a deep convolutional neural network to learn on its own how trustworthy
+			each model is. Each model generates its own prediction for some input image, and these
+			predictions are run through the convolutional ensemble model & a final prediction is given.
+		"""
+		# Break up the test set into the train_ensemble and test_ensemble sets
+		test_set_size = self.x_test.shape[0]//2
+		x_train_ensemble, y_train_ensemble = self.x_test[0:test_set_size], self.y_test[0:test_set_size]
+		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
+
+		# Define the convolutional ensemble model as a deep convolutional neural network
+		self.conv_ensemble_model = Sequential()
+		self.conv_ensemble_model.add(Conv2D(32, kernel_size=(3, 3),
+			activation='relu',
+			input_shape=(self.num_segments, self.num_classes, 1,)))
+		self.conv_ensemble_model.add(Conv2D(64, (3, 3), activation='relu'))
+		self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.conv_ensemble_model.add(Dropout(0.25))
+		self.conv_ensemble_model.add(Flatten())
+		self.conv_ensemble_model.add(Dense(128, activation='relu'))
+		self.conv_ensemble_model.add(Dropout(0.2))
+		self.conv_ensemble_model.add(Dense(self.num_classes, activation='softmax'))
+
+		# Compile the convolutional ensemble model
+		self.conv_ensemble_model.compile(loss='categorical_crossentropy',
+			optimizer=Adam(),
+			metrics=['accuracy'])
+
+		# Train the convolutional ensemble model with the train_ensemble data
+		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
+		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
+			batch_size=self.batch_size,
+			epochs=40,
+			verbose=0)
+
+		# Compute the accuracy of the convolutional ensemble model with the train_ensemble data
+		training_score = self.convolutional_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
+		print("Convolutional ensemble model accuracy on ensemble training data:", training_score)
+
+		# Validate the convolutional ensemble model with the test_ensemble data
+		validation_score = self.convolutional_boosted_ensemble_evaluate(x_test_ensemble, y_test_ensemble)
+		print("Convolutional ensemble model accuracy on ensemble test data:", validation_score)
+
+	def convolutional_boosted_ensemble_evaluate(self, x_input, y_output):
+		ensemble_predictions = self.get_ensemble_predictions(x_input, True)
+		return self.conv_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=0)[1]
 
 
 class utilities:
