@@ -25,7 +25,7 @@ class distributed_nn_training:
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 20 #Can tune
+		self.num_segments = 50 #Can tune
 		self.num_iters_on_segment = 3 #Can tune
 		self.cached_predictions = {}
 		self.utils = utilities()
@@ -254,7 +254,7 @@ class distributed_nn_training:
 			batch_size=self.batch_size,
 			epochs=60,
 			verbose=0,
-			callbacks=[EarlyStopping(monitor='loss', patience=5, verbose=0)])
+			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
 
 		# Compute the accuracy of the neural ensemble model with the train_ensemble data
 		training_score = self.neural_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
