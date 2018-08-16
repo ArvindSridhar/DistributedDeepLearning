@@ -24,9 +24,9 @@ class distributed_cnn_training:
 	def __init__(self):
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
-		self.batch_size = 1000 #Can tune
+		self.batch_size = 500 #Can tune
 		self.num_segments = 10 #Can tune
-		self.num_iters_on_segment = 1 #Can tune
+		self.num_iters_on_segment = 2 #Can tune
 		self.cached_predictions = {}
 		self.utils = utilities()
 		self.get_data()
@@ -40,11 +40,17 @@ class distributed_cnn_training:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		self.img_rows, self.img_cols, self.num_channels = x_train.shape[1], x_train.shape[2], 1
+		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+		self.cifar = True
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
-		x_train = x_train.reshape(x_train.shape[0], self.img_rows, self.img_cols, self.num_channels)
-		x_test = x_test.reshape(x_test.shape[0], self.img_rows, self.img_cols, self.num_channels)
+		if self.cifar:
+			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
+			x_train = x_train.reshape(self.num_training_examples, self.num_channels, self.img_rows, self.img_cols)
+			x_test = x_test.reshape(self.num_test_examples, self.num_channels, self.img_rows, self.img_cols)
+		else:
+			self.img_rows, self.img_cols, self.num_channels = x_train.shape[1], x_train.shape[2], 1
+			x_train = x_train.reshape(self.num_training_examples, self.img_rows, self.img_cols, self.num_channels)
+			x_test = x_test.reshape(self.num_test_examples, self.img_rows, self.img_cols, self.num_channels)
 		self.y_train = y_train.reshape(self.num_training_examples, 1)
 		self.y_test = y_test.reshape(self.num_test_examples, 1)
 		self.x_train = x_train.astype('float32')
@@ -65,9 +71,14 @@ class distributed_cnn_training:
 
 	def get_new_model(self):
 		model = Sequential()
-		model.add(Conv2D(32, kernel_size=(3, 3),
-			activation='relu',
-			input_shape=(self.img_rows, self.img_cols, self.num_channels,)))
+		if self.cifar:
+			model.add(Conv2D(32, kernel_size=(3, 3),
+				activation='relu',
+				input_shape=(self.num_channels, self.img_rows, self.img_cols,)))
+		else:
+			model.add(Conv2D(32, kernel_size=(3, 3),
+				activation='relu',
+				input_shape=(self.img_rows, self.img_cols, self.num_channels,)))
 		model.add(Conv2D(64, (3, 3), activation='relu'))
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 		model.add(Dropout(0.25))
@@ -189,11 +200,12 @@ class distributed_cnn_training:
 
 		print('-------------------------------------------------------------------------------------------------')
 
-	def predict_cached(self, model, x_input):
-		if x_input.tobytes() not in self.cached_predictions:
-			self.cached_predictions[x_input.tobytes()] = model.predict(x_input)
-			# print("Didn't get from cache, had to recompute:", x_input.shape)
-		return self.cached_predictions[x_input.tobytes()]
+	def predict_cached(self, model, segment, x_input):
+		cached_key = segment + str(x_input.tobytes())
+		if cached_key not in self.cached_predictions:
+			self.cached_predictions[cached_key] = model.predict(x_input)
+			# print("Didn't get from cache, had to recompute:", segment, x_input.shape)
+		return self.cached_predictions[cached_key]
 
 	def get_ensemble_predictions(self, x_input, expand_array=False):
 		"""
@@ -206,9 +218,9 @@ class distributed_cnn_training:
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
 			if not expand_array:
-				prediction = list(np.argmax(self.predict_cached(model, x_input), axis=1))
+				prediction = list(np.argmax(self.predict_cached(model, segment, x_input), axis=1))
 			else:
-				prediction = self.predict_cached(model, x_input).T
+				prediction = self.predict_cached(model, segment, x_input).T
 			ensemble_predictions.append(prediction)
 		if not expand_array:
 			return np.array(ensemble_predictions)
@@ -233,7 +245,7 @@ class distributed_cnn_training:
 			run through the neural ensemble model and a final prediction is given.
 		"""
 		# Break up the test set into the train_ensemble and test_ensemble sets
-		test_set_size = self.x_test.shape[0]//2
+		test_set_size = self.num_test_examples//2
 		x_train_ensemble, y_train_ensemble = self.x_test[0:test_set_size], self.y_test[0:test_set_size]
 		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
 
@@ -280,7 +292,7 @@ class distributed_cnn_training:
 			predictions are run through the convolutional ensemble model & a final prediction is given.
 		"""
 		# Break up the test set into the train_ensemble and test_ensemble sets
-		test_set_size = self.x_test.shape[0]//2
+		test_set_size = self.num_test_examples//2
 		x_train_ensemble, y_train_ensemble = self.x_test[0:test_set_size], self.y_test[0:test_set_size]
 		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
 
@@ -306,7 +318,7 @@ class distributed_cnn_training:
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
-			epochs=40,
+			epochs=60,
 			verbose=0,
 			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
 
