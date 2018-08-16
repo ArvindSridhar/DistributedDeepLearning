@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import RMSprop, Adam, SGD
 from keras.models import clone_model
+from keras.callbacks import EarlyStopping
 import numpy as np
 import pandas
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ from scipy import linalg as la
 import random
 import itertools
 import operator
+import time
 
 class distributed_cnn_training:
 
@@ -25,6 +27,7 @@ class distributed_cnn_training:
 		self.batch_size = 1000 #Can tune
 		self.num_segments = 10 #Can tune
 		self.num_iters_on_segment = 1 #Can tune
+		self.cached_predictions = {}
 		self.utils = utilities()
 		self.get_data()
 		self.distribute_data()
@@ -171,7 +174,7 @@ class distributed_cnn_training:
 		print('-------------------------------------------------------------------------------------------------')
 
 		# Conduct final testing with the convolutional boosted ensemble approach
-		assert(self.num_classes = self.num_segments, "Cannot perform convolutional ensembling at the moment")
+		# assert self.num_classes == self.num_segments, "Cannot perform convolutional ensembling at the moment"
 		self.convolutional_boosted_ensemble_train()
 		train_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_train, self.y_train)
 		test_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_test, self.y_test)
@@ -179,6 +182,12 @@ class distributed_cnn_training:
 		print("Test set prediction accuracy with convolutional boosted ensembling:", test_score_convolutional)
 
 		print('-------------------------------------------------------------------------------------------------')
+
+	def predict_cached(self, model, x_input):
+		if x_input.tobytes() not in self.cached_predictions:
+			self.cached_predictions[x_input.tobytes()] = model.predict(x_input)
+			# print("Didn't get from cache, had to recompute:", x_input.shape)
+		return self.cached_predictions[x_input.tobytes()]
 
 	def get_ensemble_predictions(self, x_input, expand_array=False):
 		"""
@@ -191,9 +200,9 @@ class distributed_cnn_training:
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
 			if not expand_array:
-				prediction = list(np.argmax(model.predict(x_input), axis=1))
+				prediction = list(np.argmax(self.predict_cached(model, x_input), axis=1))
 			else:
-				prediction = model.predict(x_input).T
+				prediction = self.predict_cached(model, x_input).T
 			ensemble_predictions.append(prediction)
 		if not expand_array:
 			return np.array(ensemble_predictions)
@@ -242,7 +251,8 @@ class distributed_cnn_training:
 		history = self.neural_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
 			epochs=60,
-			verbose=0)
+			verbose=0,
+			callbacks=[EarlyStopping(monitor='loss', patience=5, verbose=0)])
 
 		# Compute the accuracy of the neural ensemble model with the train_ensemble data
 		training_score = self.neural_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
@@ -291,7 +301,8 @@ class distributed_cnn_training:
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
 			epochs=40,
-			verbose=0)
+			verbose=0,
+			callbacks=[EarlyStopping(monitor='loss', patience=5, verbose=0)])
 
 		# Compute the accuracy of the convolutional ensemble model with the train_ensemble data
 		training_score = self.convolutional_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
