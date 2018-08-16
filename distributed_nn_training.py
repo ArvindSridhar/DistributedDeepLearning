@@ -25,7 +25,7 @@ class distributed_nn_training:
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 100 #Can tune
-		self.num_segments = 50 #Can tune
+		self.num_segments = 10 #Can tune
 		self.num_iters_on_segment = 3 #Can tune
 		self.cached_predictions = {}
 		self.utils = utilities()
@@ -185,11 +185,12 @@ class distributed_nn_training:
 
 		print('-------------------------------------------------------------------------------------------------')
 
-	def predict_cached(self, model, x_input):
-		if x_input.tobytes() not in self.cached_predictions:
-			self.cached_predictions[x_input.tobytes()] = model.predict(x_input)
-			# print("Didn't get from cache, had to recompute:", x_input.shape)
-		return self.cached_predictions[x_input.tobytes()]
+	def predict_cached(self, model, segment, x_input):
+		cached_key = segment + str(x_input.tobytes())
+		if cached_key not in self.cached_predictions:
+			self.cached_predictions[cached_key] = model.predict(x_input)
+			# print("Didn't get from cache, had to recompute:", segment, x_input.shape)
+		return self.cached_predictions[cached_key]
 
 	def get_ensemble_predictions(self, x_input, expand_array=False):
 		"""
@@ -202,9 +203,9 @@ class distributed_nn_training:
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
 			if not expand_array:
-				prediction = list(np.argmax(self.predict_cached(model, x_input), axis=1))
+				prediction = list(np.argmax(self.predict_cached(model, segment, x_input), axis=1))
 			else:
-				prediction = self.predict_cached(model, x_input).T
+				prediction = self.predict_cached(model, segment, x_input).T
 			ensemble_predictions.append(prediction)
 		if not expand_array:
 			return np.array(ensemble_predictions)
@@ -229,7 +230,7 @@ class distributed_nn_training:
 			run through the neural ensemble model and a final prediction is given.
 		"""
 		# Break up the test set into the train_ensemble and test_ensemble sets
-		test_set_size = self.x_test.shape[0]//2
+		test_set_size = self.num_test_examples//2
 		x_train_ensemble, y_train_ensemble = self.x_test[0:test_set_size], self.y_test[0:test_set_size]
 		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
 
@@ -282,7 +283,7 @@ class distributed_nn_training:
 			predictions are run through the convolutional ensemble model & a final prediction is given.
 		"""
 		# Break up the test set into the train_ensemble and test_ensemble sets
-		test_set_size = self.x_test.shape[0]//2
+		test_set_size = self.num_test_examples//2
 		x_train_ensemble, y_train_ensemble = self.x_test[0:test_set_size], self.y_test[0:test_set_size]
 		x_test_ensemble, y_test_ensemble = self.x_test[test_set_size:], self.y_test[test_set_size:]
 
@@ -308,9 +309,9 @@ class distributed_nn_training:
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
-			epochs=80,
+			epochs=60,
 			verbose=0,
-			callbacks=[EarlyStopping(monitor='loss', patience=5, verbose=0)])
+			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
 
 		# Compute the accuracy of the convolutional ensemble model with the train_ensemble data
 		training_score = self.convolutional_boosted_ensemble_evaluate(x_train_ensemble, y_train_ensemble)
