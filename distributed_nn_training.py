@@ -153,29 +153,35 @@ class distributed_nn_training:
 
 		# Conduct final testing with the consensus prediction ensemble approach, [include aggregate model in the ensemble]
 		# self.segment_models['agg'] = self.aggregate_model
+		start_time = time.time()
 		train_score_consensus = self.consensus_predict_ensemble_evaluate(self.x_train, self.y_train)
 		test_score_consensus = self.consensus_predict_ensemble_evaluate(self.x_test, self.y_test)
 		print("Training set prediction accuracy with consensus prediction ensembling:", train_score_consensus)
 		print("Test set prediction accuracy with consensus prediction ensembling:", test_score_consensus)
+		print("Time:", time.time() - start_time)
 
 		print('-------------------------------------------------------------------------------------------------')
 
 		# Conduct final testing with the neural boosted ensemble approach
+		start_time = time.time()
 		self.neural_boosted_ensemble_train()
 		train_score_neural = self.neural_boosted_ensemble_evaluate(self.x_train, self.y_train)
 		test_score_neural = self.neural_boosted_ensemble_evaluate(self.x_test, self.y_test)
 		print("Training set prediction accuracy with neural boosted ensembling:", train_score_neural)
 		print("Test set prediction accuracy with neural boosted ensembling:", test_score_neural)
+		print("Time:", time.time() - start_time)
 
 		print('-------------------------------------------------------------------------------------------------')
 
 		# Conduct final testing with the convolutional boosted ensemble approach
 		# assert self.num_classes == self.num_segments, "Cannot perform convolutional ensembling at the moment"
+		start_time = time.time()
 		self.convolutional_boosted_ensemble_train()
 		train_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_train, self.y_train)
 		test_score_convolutional = self.convolutional_boosted_ensemble_evaluate(self.x_test, self.y_test)
 		print("Training set prediction accuracy with convolutional boosted ensembling:", train_score_convolutional)
 		print("Test set prediction accuracy with convolutional boosted ensembling:", test_score_convolutional)
+		print("Time:", time.time() - start_time)
 
 		print('-------------------------------------------------------------------------------------------------')
 
