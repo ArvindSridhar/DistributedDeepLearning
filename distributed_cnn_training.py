@@ -40,17 +40,19 @@ class distributed_cnn_training:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-		self.cifar = True
+		(x_train, y_train), (x_test, y_test) = mnist.load_data()
+		self.cifar = False
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
 			x_train = x_train.reshape(self.num_training_examples, self.num_channels, self.img_rows, self.img_cols)
 			x_test = x_test.reshape(self.num_test_examples, self.num_channels, self.img_rows, self.img_cols)
+			self.input_shape = (self.num_channels, self.img_rows, self.img_cols)
 		else:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[1], x_train.shape[2], 1
 			x_train = x_train.reshape(self.num_training_examples, self.img_rows, self.img_cols, self.num_channels)
 			x_test = x_test.reshape(self.num_test_examples, self.img_rows, self.img_cols, self.num_channels)
+			self.input_shape = (self.img_rows, self.img_cols, self.num_channels)
 		self.y_train = y_train.reshape(self.num_training_examples, 1)
 		self.y_test = y_test.reshape(self.num_test_examples, 1)
 		self.x_train = x_train.astype('float32')
@@ -71,14 +73,9 @@ class distributed_cnn_training:
 
 	def get_new_model(self):
 		model = Sequential()
-		if self.cifar:
-			model.add(Conv2D(32, kernel_size=(3, 3),
-				activation='relu',
-				input_shape=(self.num_channels, self.img_rows, self.img_cols,)))
-		else:
-			model.add(Conv2D(32, kernel_size=(3, 3),
-				activation='relu',
-				input_shape=(self.img_rows, self.img_cols, self.num_channels,)))
+		model.add(Conv2D(32, kernel_size=(3, 3),
+			activation='relu',
+			input_shape=self.input_shape))
 		model.add(Conv2D(64, (3, 3), activation='relu'))
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 		model.add(Dropout(0.25))
