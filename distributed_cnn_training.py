@@ -18,6 +18,7 @@ import random
 import itertools
 import operator
 import time
+import multiprocessing
 
 class distributed_cnn_training:
 
@@ -40,8 +41,8 @@ class distributed_cnn_training:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		self.cifar = False
+		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+		self.cifar = True
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
@@ -94,6 +95,25 @@ class distributed_cnn_training:
 			self.segment_models["seg"+str(i)] = clone_model(model)
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
+	def process(self, segment):
+		segment = "seg"+str(segment)
+		print('Segment:', segment)
+		(x_train_seg, y_train_seg) = self.segment_batches[segment]
+		model_seg = self.segment_models[segment]
+		model_seg.compile(loss='categorical_crossentropy',
+			optimizer=Adam(),
+			metrics=['accuracy'])
+		history = model_seg.fit(x_train_seg, y_train_seg,
+			batch_size=self.batch_size,
+			epochs=self.num_iters_on_segment,
+			verbose=1,
+			validation_data=(self.x_test, self.y_test))
+		if i == self.num_grand_epochs+1:
+			weights = model_seg.get_weights()
+			for j in range(len(weights)):
+				plot = self.plots[j]
+				plot.plot_data(weights[j], self.segment_colors[segment])
+
 	def train_model_aggregate(self):
 		# Training and evaluation loop
 		for i in range(self.num_grand_epochs):
@@ -106,24 +126,9 @@ class distributed_cnn_training:
 			if i == self.num_grand_epochs+1:
 				self.plots = [pca_weights_plotter() for j in range(len(self.aggregate_model.get_weights()))]
 
-			# Train individual models for specified number of epochs	
-			for segment in sorted(self.segment_models):
-				print('Segment:', segment)
-				(x_train_seg, y_train_seg) = self.segment_batches[segment]
-				model_seg = self.segment_models[segment]
-				model_seg.compile(loss='categorical_crossentropy',
-					optimizer=Adam(),
-					metrics=['accuracy'])
-				history = model_seg.fit(x_train_seg, y_train_seg,
-					batch_size=self.batch_size,
-					epochs=self.num_iters_on_segment,
-					verbose=1,
-					validation_data=(self.x_test, self.y_test))
-				if i == self.num_grand_epochs+1:
-					weights = model_seg.get_weights()
-					for j in range(len(weights)):
-						plot = self.plots[j]
-						plot.plot_data(weights[j], self.segment_colors[segment])
+			# Train individual models for specified number of epochs
+			pool = multiprocessing.Pool(self.num_segments)
+			pool.map(self.process, list(range(self.num_segments)))
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32
