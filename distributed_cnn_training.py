@@ -36,9 +36,9 @@ class distributed_cnn_training:
 		self.define_segment_models()
 		self.train_model_aggregate()
 
-	def tensorflow_test(self):
-		hello = tf.constant('Hello, TensorFlow!')
-		sess = tf.Session()
+	def tensorflow_device_test(self):
+		hello = tf.constant('Tensorflow check passed')
+		sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 		print(sess.run(hello))
 
 	def get_data(self):
@@ -66,7 +66,6 @@ class distributed_cnn_training:
 		self.y_test = keras.utils.to_categorical(self.y_test, self.num_classes)
 
 	def distribute_data(self):
-		# Shuffle? np.random.shuffle(self.x_train)
 		self.segment_batches = {}
 		data_per_segment = int(math.floor(self.num_training_examples/self.num_segments))
 		for i in range(self.num_segments):
@@ -109,11 +108,6 @@ class distributed_cnn_training:
 			epochs=self.num_iters_on_segment,
 			verbose=1,
 			validation_data=(self.x_test, self.y_test))
-		# if i == self.num_grand_epochs+1:
-		# 	weights = model_seg.get_weights()
-		# 	for j in range(len(weights)):
-		# 		plot = self.plots[j]
-		# 		plot.plot_data(weights[j], self.segment_colors[segment])
 
 	def train_model_aggregate(self):
 		# Training and evaluation loop
@@ -128,9 +122,9 @@ class distributed_cnn_training:
 				self.plots = [pca_weights_plotter() for j in range(len(self.aggregate_model.get_weights()))]
 
 			# Train individual models for specified number of epochs
-			# pool = multiprocessing.Pool(self.num_segments)
-			# pool.map(self.process, list(range(self.num_segments)))
+			start_time = time.time()
 			parmap(self.process, list(range(self.num_segments)))
+			print("Time:", time.time() - start_time)
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32
