@@ -19,6 +19,7 @@ import itertools
 import operator
 import time
 import multiprocessing
+from mputils import parmap
 
 class distributed_cnn_training:
 
@@ -108,17 +109,17 @@ class distributed_cnn_training:
 			epochs=self.num_iters_on_segment,
 			verbose=1,
 			validation_data=(self.x_test, self.y_test))
-		if i == self.num_grand_epochs+1:
-			weights = model_seg.get_weights()
-			for j in range(len(weights)):
-				plot = self.plots[j]
-				plot.plot_data(weights[j], self.segment_colors[segment])
+		# if i == self.num_grand_epochs+1:
+		# 	weights = model_seg.get_weights()
+		# 	for j in range(len(weights)):
+		# 		plot = self.plots[j]
+		# 		plot.plot_data(weights[j], self.segment_colors[segment])
 
 	def train_model_aggregate(self):
 		# Training and evaluation loop
 		for i in range(self.num_grand_epochs):
 			print("Grand Epoch:", i+1, "/", self.num_grand_epochs)
-			
+
 			# Re-define the aggregate model (stored on the master node, and ultimately returned), also re-initialize its weights
 			self.aggregate_model = self.get_new_model()
 
@@ -127,8 +128,9 @@ class distributed_cnn_training:
 				self.plots = [pca_weights_plotter() for j in range(len(self.aggregate_model.get_weights()))]
 
 			# Train individual models for specified number of epochs
-			pool = multiprocessing.Pool(self.num_segments)
-			pool.map(self.process, list(range(self.num_segments)))
+			# pool = multiprocessing.Pool(self.num_segments)
+			# pool.map(self.process, list(range(self.num_segments)))
+			parmap(self.process, list(range(self.num_segments)))
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32
