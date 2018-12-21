@@ -24,7 +24,7 @@ class distributed_cnn_benchmark:
 		self.num_classes = 10
 		self.batch_size = 500
 		self.num_segments = 10
-		self.num_iters_on_segment = 2
+		self.num_iters_on_segment = 3
 		self.cached_predictions = {}
 		self.get_data()
 		self.distribute_data()
@@ -109,15 +109,21 @@ class distributed_cnn_benchmark:
 		start_time = time.time()
 		for segnum in list(range(self.num_segments)):
 			self.train_segment(segnum)
-		print("Segment model (serial) training time:", time.time() - start_time, "seconds")
 		print('\n-------------------------------------------------------------------------------------------------')
+		time_seg_training = time.time() - start_time
+		print("Segment model (serial) training time:", time_seg_training, "seconds")
 
 		# Ensemble the models and perform convolutional boosting to produce final predictions
 		start_time2 = time.time()
 		self.convolutional_boosted_ensemble_train()
-		print("Convolutional ensemble training time:", time.time() - start_time2, "seconds")
-		print("Full training time:", time.time() - start_time, "seconds")
-		print('-------------------------------------------------------------------------------------------------')
+		time_conv_training = time.time() - start_time2
+		print("Convolutional ensemble training time:", time_conv_training, "seconds")
+		total_train_time = time.time() - start_time
+		print("Full training time:", total_train_time, "seconds")
+
+		# Amdahl's Law calculation of potential training time
+		s, P = time_conv_training/total_train_time, self.num_segments
+		print("Potential training time:", total_train_time * (s + (1 - s)/P), "seconds")
 
 	def eval_model_aggregate(self):
 		# Evaluate the final model aggregate with training and test data
@@ -127,7 +133,7 @@ class distributed_cnn_benchmark:
 		print("Training set prediction accuracy of convolutional boosted ensemble:", train_score)
 		print("Test set prediction accuracy of convolutional boosted ensemble:", test_score)
 		print("Full evaluation time:", time.time() - start_time, "seconds")
-		print('-------------------------------------------------------------------------------------------------')
+		print('-------------------------------------------------------------------------------------------------\n')
 
 	def predict_cached(self, model, segment, x_input):
 		cached_key = segment + str(x_input.tobytes())
@@ -270,6 +276,7 @@ class serial_cnn_benchmark:
 			epochs=self.epochs,
 			verbose=1,
 			validation_data=(self.x_test, self.y_test))
+		print('\n-------------------------------------------------------------------------------------------------')
 		print("Serial CNN training time:", time.time() - start_time, "seconds")
 
 	def print_eval_results(self):
