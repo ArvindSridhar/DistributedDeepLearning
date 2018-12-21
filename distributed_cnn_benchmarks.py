@@ -23,11 +23,11 @@ class distributed_cnn_benchmark:
 	def __init__(self):
 		self.num_classes = 10
 		self.batch_size = 500
-		self.num_segments = 10
+		self.num_segments = 1
+		self.num_training_iterations = 1
 		self.num_iters_on_segment = 3
 		self.cached_predictions = {}
 		self.get_data()
-		self.distribute_data()
 		self.define_segment_models()
 		self.train_model_aggregate()
 		self.eval_model_aggregate()
@@ -38,8 +38,8 @@ class distributed_cnn_benchmark:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		self.cifar = False
+		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+		self.cifar = True
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
@@ -62,8 +62,17 @@ class distributed_cnn_benchmark:
 		self.y_test = keras.utils.to_categorical(self.y_test, self.num_classes)
 
 	def distribute_data(self):
+		# Define how much data per segment
 		self.segment_batches = {}
 		data_per_segment = int(math.floor(self.num_training_examples/self.num_segments))
+
+		# Shuffle x_train and y_train together
+		rng_state = np.random.get_state()
+		np.random.shuffle(self.x_train)
+		np.random.set_state(rng_state)
+		np.random.shuffle(self.y_train)
+
+		# Distribute the shuffled data
 		for i in range(self.num_segments):
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
@@ -107,8 +116,10 @@ class distributed_cnn_benchmark:
 	def train_model_aggregate(self):
 		# Train the segment models, ideally in parallel
 		start_time = time.time()
-		for segnum in list(range(self.num_segments)):
-			self.train_segment(segnum)
+		for i in range(self.num_training_iterations):
+			self.distribute_data()
+			for segnum in list(range(self.num_segments)):
+				self.train_segment(segnum)
 		print('\n-------------------------------------------------------------------------------------------------')
 		time_seg_training = time.time() - start_time
 		print("Segment model (serial) training time:", time_seg_training, "seconds")
@@ -123,7 +134,7 @@ class distributed_cnn_benchmark:
 
 		# Amdahl's Law calculation of potential training time
 		s, P = time_conv_training/total_train_time, self.num_segments
-		print("Potential training time:", total_train_time * (s + (1 - s)/P), "seconds")
+		print("Potential training time (with parallelism):", total_train_time * (s + (1 - s)/P), "seconds")
 
 	def eval_model_aggregate(self):
 		# Evaluate the final model aggregate with training and test data
@@ -217,7 +228,7 @@ class serial_cnn_benchmark:
 	def __init__(self):
 		self.num_classes = 10
 		self.batch_size = 500
-		self.epochs = 10
+		self.epochs = 3
 		self.get_data()
 		self.define_model()
 		self.train_model()
