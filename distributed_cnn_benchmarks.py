@@ -138,6 +138,7 @@ class distributed_cnn_benchmark:
 
 	def eval_model_aggregate(self):
 		# Evaluate the final model aggregate with training and test data
+		print('-------------------------------------------------------------------------------------------------')
 		start_time = time.time()
 		train_score = self.convolutional_boosted_ensemble_evaluate(self.x_train, self.y_train)
 		test_score = self.convolutional_boosted_ensemble_evaluate(self.x_test, self.y_test)
@@ -190,7 +191,7 @@ class distributed_cnn_benchmark:
 			activation='relu',
 			input_shape=(self.num_segments, self.num_classes, 1,)))
 		self.conv_ensemble_model.add(Conv2D(64, (3, 3), activation='relu'))
-		self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
+		# self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
 		self.conv_ensemble_model.add(Dropout(0.25))
 		self.conv_ensemble_model.add(Flatten())
 		self.conv_ensemble_model.add(Dense(128, activation='relu'))
@@ -291,6 +292,7 @@ class serial_cnn_benchmark:
 		print("Serial CNN training time:", time.time() - start_time, "seconds")
 
 	def print_eval_results(self):
+		print('-------------------------------------------------------------------------------------------------')
 		start_time = time.time()
 		train_score = self.evaluate_model(self.x_train, self.y_train)
 		test_score = self.evaluate_model(self.x_test, self.y_test)
