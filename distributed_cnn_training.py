@@ -42,8 +42,8 @@ class distributed_cnn_training:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-		self.cifar = True
+		(x_train, y_train), (x_test, y_test) = mnist.load_data()
+		self.cifar = False
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
@@ -95,7 +95,7 @@ class distributed_cnn_training:
 			self.segment_models["seg"+str(i)] = clone_model(model)
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
-	def process(self, segment):
+	def train_segment(self, segment):
 		segment = "seg"+str(segment)
 		print('Segment:', segment)
 		(x_train_seg, y_train_seg) = self.segment_batches[segment]
@@ -123,8 +123,15 @@ class distributed_cnn_training:
 
 			# Train individual models for specified number of epochs
 			start_time = time.time()
-			parmap(self.process, list(range(self.num_segments)))
+			for segnum in list(range(self.num_segments)):
+				self.train_segment(segnum)
+			# parmap(self.train_segment, list(range(self.num_segments)))
 			print("Time:", time.time() - start_time)
+			# weights1 = self.segment_models["seg1"].get_weights()
+			# time.sleep(5)
+			# weights2 = self.segment_models["seg1"].get_weights()
+			# assertion = all([(a == b).all() for (a, b) in zip(weights1, weights2)])
+			# assert (assertion), "Models not done training"
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32
