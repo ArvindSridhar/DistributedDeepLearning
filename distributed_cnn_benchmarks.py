@@ -188,7 +188,7 @@ class distributed_cnn_benchmark:
 		# Train the convolutional ensemble model with the train_ensemble data
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
-			batch_size=10,#self.batch_size,
+			batch_size=self.batch_size,
 			epochs=60,
 			verbose=0,
 			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
