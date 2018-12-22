@@ -22,11 +22,12 @@ class distributed_cnn_benchmark:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.batch_size = 500
-		self.num_segments = 1
-		self.num_training_iterations = 1
-		self.num_iters_on_segment = 3
+		self.batch_size = 300
+		self.num_segments = 10
+		self.num_training_iterations = 10
+		self.num_iters_on_segment = 2
 		self.cached_predictions = {}
+		self.cifar = True
 		self.get_data()
 		self.define_segment_models()
 		self.train_model_aggregate()
@@ -39,7 +40,6 @@ class distributed_cnn_benchmark:
 
 	def get_data(self):
 		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-		self.cifar = True
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
@@ -80,16 +80,27 @@ class distributed_cnn_benchmark:
 	def get_new_model(self):
 		# This is the model that the user defines/provides to us
 		model = Sequential()
-		model.add(Conv2D(32, kernel_size=(3, 3),
+		model.add(Conv2D(64, kernel_size=(3, 3),
 			activation='relu',
 			input_shape=self.input_shape))
-		model.add(Conv2D(64, (3, 3), activation='relu'))
+		model.add(Conv2D(128, (3, 3), activation='relu'))
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 		model.add(Dropout(0.25))
 		model.add(Flatten())
 		model.add(Dense(128, activation='relu'))
 		model.add(Dropout(0.2))
 		model.add(Dense(self.num_classes, activation='softmax'))
+		# Lighter model 1: change 64 to 32 and 128 to 64
+		# Lighter model 2:
+		# model = Sequential()
+		# model.add(Conv2D(32, kernel_size=(3, 3),
+		# 	activation='relu',
+		# 	input_shape=self.input_shape))
+		# model.add(Conv2D(32, (3, 3), activation='relu'))
+		# model.add(MaxPooling2D(pool_size=(2, 2)))
+		# model.add(Dropout(0.25))
+		# model.add(Flatten())
+		# model.add(Dense(self.num_classes, activation='softmax'))
 		return model
 
 	def define_segment_models(self):
@@ -191,7 +202,7 @@ class distributed_cnn_benchmark:
 			activation='relu',
 			input_shape=(self.num_segments, self.num_classes, 1,)))
 		self.conv_ensemble_model.add(Conv2D(64, (3, 3), activation='relu'))
-		# self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
 		self.conv_ensemble_model.add(Dropout(0.25))
 		self.conv_ensemble_model.add(Flatten())
 		self.conv_ensemble_model.add(Dense(128, activation='relu'))
@@ -228,8 +239,9 @@ class serial_cnn_benchmark:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.batch_size = 500
-		self.epochs = 3
+		self.batch_size = 300
+		self.epochs = 10
+		self.cifar = True
 		self.get_data()
 		self.define_model()
 		self.train_model()
@@ -241,8 +253,7 @@ class serial_cnn_benchmark:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		self.cifar = False
+		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
