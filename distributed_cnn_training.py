@@ -25,10 +25,10 @@ class distributed_cnn_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.num_grand_epochs = 1 #Can tune
+		self.num_grand_epochs = 10 #Can tune
 		self.batch_size = 500 #Can tune
 		self.num_segments = 10 #Can tune
-		self.num_iters_on_segment = 2 #Can tune
+		self.num_iters_on_segment = 1 #Can tune
 		self.cached_predictions = {}
 		self.utils = utilities()
 		self.get_data()
@@ -42,8 +42,8 @@ class distributed_cnn_training:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = mnist.load_data()
-		self.cifar = False
+		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+		self.cifar = True
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
@@ -134,26 +134,31 @@ class distributed_cnn_training:
 			# assert (assertion), "Models not done training"
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
-			avg_weights = sum([np.array(self.segment_models[segment].get_weights())*np.random.random()*32
-							   for segment in self.segment_models])/self.num_segments
+			avg_weights = []
+			for i in range(len(self.aggregate_model.get_weights())):
+				np_arrays = [self.segment_models[segment].get_weights()[i] for segment
+							 in self.segment_models]
+				avg_weights.append(sum(np_arrays)/self.num_segments)
 			self.aggregate_model.set_weights(avg_weights)
+			# avg_weights = sum([np.array(self.segment_models[segment].get_weights())
+			# 				   for segment in self.segment_models])/self.num_segments
 
 			# Compile aggregate model
 			self.aggregate_model.compile(loss='categorical_crossentropy',
 				optimizer=Adam(),
 				metrics=['accuracy'])
 
-			# # Evaluate aggregate model on the test set
-			# score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
-			# print("Aggregate model accuracy on test set:", score[1])
+			# Evaluate aggregate model on the test set
+			score = self.aggregate_model.evaluate(self.x_test, self.y_test, verbose=1)
+			print("Aggregate model accuracy on test set:", score[1])
 
 			# Plot the average model's weights and show the plots, only if the algorithm is on its last grand epoch
-			if i == self.num_grand_epochs+1:
-				avg_weights = self.aggregate_model.get_weights()
-				for j in range(len(avg_weights)):
-					plot = self.plots[j]
-					plot.plot_data(avg_weights[j], "dark orange", 'x')
-					plot.show_plot()
+			# if i == self.num_grand_epochs+1:
+			# 	avg_weights = self.aggregate_model.get_weights()
+			# 	for j in range(len(avg_weights)):
+			# 		plot = self.plots[j]
+			# 		plot.plot_data(avg_weights[j], "dark orange", 'x')
+			# 		plot.show_plot()
 
 			# Redistribute the aggregate model to each segment for the next grand epoch of training, if not on last grand epoch
 			if i != self.num_grand_epochs-1:
