@@ -171,7 +171,7 @@ class distributed_cnn_benchmark:
 		x_test_ensemble, y_test_ensemble = self.x_test[split_value:], self.y_test[split_value:]
 
 		# Larger training set
-		x_train_ensemble, y_train_ensemble = np.vstack(self.x_train, x_train_ensemble), np.vstack(self.y_train, y_train_ensemble)
+		x_train_ensemble, y_train_ensemble = self.x_train, self.y_train #np.vstack(self.x_train, x_train_ensemble), np.vstack(self.y_train, y_train_ensemble)
 
 		# Define the convolutional ensemble model as a deep convolutional neural network
 		self.conv_ensemble_model = Sequential()
