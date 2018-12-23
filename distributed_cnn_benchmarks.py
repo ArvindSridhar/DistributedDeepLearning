@@ -24,7 +24,7 @@ class distributed_cnn_benchmark:
 		self.num_classes = 10
 		self.batch_size = 300
 		self.num_segments = 10
-		self.num_training_iterations = 20
+		self.num_training_iterations = 400
 		self.num_iters_on_segment = 1
 		self.cached_predictions = {}
 		self.cifar = True

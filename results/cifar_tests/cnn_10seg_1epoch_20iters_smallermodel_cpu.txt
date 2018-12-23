@@ -1,0 +1,621 @@
+Notes:
+-There is 30 seconds of CPU time after the ensembling CNN finishes training where we evaluate the ensemble; this is included in potential training time and thus should be subtracted; thus, potential training time here is 426 seconds
+-If we ran it for 20 training iterations like the GPU version, we would get similar results as GPU (assume), and potential training time would be 565 seconds
+
+
+± |master ✓| → python3 distributed_cnn_benchmarks.py
+Using TensorFlow backend.
+Device mapping: no known devices.
+Const: (Const): /job:localhost/replica:0/task:0/device:CPU:0
+b'Tensorflow check passed'
+Device mapping: no known devices.
+Const_1: (Const): /job:localhost/replica:0/task:0/device:CPU:0
+Const: (Const): /job:localhost/replica:0/task:0/device:CPU:0
+b'Tensorflow check passed'
+Training Iteration: 1 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.2686 - acc: 0.1518 - val_loss: 2.1707 - val_acc: 0.2335
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 10s 2ms/step - loss: 2.2831 - acc: 0.1368 - val_loss: 2.2356 - val_acc: 0.2221
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 10s 2ms/step - loss: 2.2418 - acc: 0.1608 - val_loss: 2.1408 - val_acc: 0.2208
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 10s 2ms/step - loss: 2.2303 - acc: 0.1680 - val_loss: 2.0687 - val_acc: 0.2437
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 10s 2ms/step - loss: 2.2267 - acc: 0.1686 - val_loss: 2.0906 - val_acc: 0.2541
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 10s 2ms/step - loss: 2.2180 - acc: 0.1724 - val_loss: 2.0935 - val_acc: 0.1965
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.2763 - acc: 0.1428 - val_loss: 2.2024 - val_acc: 0.2528
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.2575 - acc: 0.1620 - val_loss: 2.1665 - val_acc: 0.2224
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.2235 - acc: 0.1610 - val_loss: 2.0734 - val_acc: 0.2456
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.2204 - acc: 0.1756 - val_loss: 2.0875 - val_acc: 0.2432
+Training Iteration: 2 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.1433 - acc: 0.2144 - val_loss: 2.0386 - val_acc: 0.2739
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.2198 - acc: 0.1748 - val_loss: 2.1351 - val_acc: 0.2579
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.1398 - acc: 0.2118 - val_loss: 2.0500 - val_acc: 0.2641
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.0729 - acc: 0.2298 - val_loss: 1.9533 - val_acc: 0.2981
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.0804 - acc: 0.2372 - val_loss: 1.9665 - val_acc: 0.3028
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.0809 - acc: 0.2430 - val_loss: 1.9998 - val_acc: 0.2955
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.1466 - acc: 0.2114 - val_loss: 2.0120 - val_acc: 0.2864
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.1294 - acc: 0.2256 - val_loss: 2.0239 - val_acc: 0.3022
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.1068 - acc: 0.2276 - val_loss: 1.9879 - val_acc: 0.3054
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0784 - acc: 0.2332 - val_loss: 1.9618 - val_acc: 0.3131
+Training Iteration: 3 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 16s 3ms/step - loss: 2.0229 - acc: 0.2540 - val_loss: 1.9215 - val_acc: 0.3107
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.1210 - acc: 0.2134 - val_loss: 2.0311 - val_acc: 0.2831
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0768 - acc: 0.2420 - val_loss: 1.9833 - val_acc: 0.3176
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 1.9471 - acc: 0.2838 - val_loss: 1.8733 - val_acc: 0.3196
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 2.0203 - acc: 0.2490 - val_loss: 1.9028 - val_acc: 0.3289
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0389 - acc: 0.2652 - val_loss: 1.9431 - val_acc: 0.3114
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0702 - acc: 0.2414 - val_loss: 1.9425 - val_acc: 0.3039
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 2.0570 - acc: 0.2512 - val_loss: 1.9268 - val_acc: 0.3170
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9855 - acc: 0.2698 - val_loss: 1.8582 - val_acc: 0.3564
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 2.0149 - acc: 0.2610 - val_loss: 1.8894 - val_acc: 0.3504
+Training Iteration: 4 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9544 - acc: 0.2918 - val_loss: 1.8569 - val_acc: 0.3466
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0648 - acc: 0.2378 - val_loss: 1.9499 - val_acc: 0.3157
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0472 - acc: 0.2590 - val_loss: 1.9588 - val_acc: 0.3159
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9209 - acc: 0.3054 - val_loss: 1.7965 - val_acc: 0.3612
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9355 - acc: 0.2822 - val_loss: 1.8118 - val_acc: 0.3611
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0042 - acc: 0.2710 - val_loss: 1.8952 - val_acc: 0.3267
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0216 - acc: 0.2608 - val_loss: 1.9031 - val_acc: 0.3146
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 2.0116 - acc: 0.2706 - val_loss: 1.9090 - val_acc: 0.3331
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9069 - acc: 0.2932 - val_loss: 1.7887 - val_acc: 0.3844
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9337 - acc: 0.2964 - val_loss: 1.8104 - val_acc: 0.3780
+Training Iteration: 5 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9160 - acc: 0.3014 - val_loss: 1.7973 - val_acc: 0.3687
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9756 - acc: 0.2678 - val_loss: 1.8558 - val_acc: 0.3481
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9864 - acc: 0.2718 - val_loss: 1.8973 - val_acc: 0.3331
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8558 - acc: 0.3288 - val_loss: 1.7502 - val_acc: 0.3813
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9617 - acc: 0.2912 - val_loss: 1.8314 - val_acc: 0.3584
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.9576 - acc: 0.2982 - val_loss: 1.8453 - val_acc: 0.3466
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9617 - acc: 0.2860 - val_loss: 1.8306 - val_acc: 0.3557
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9257 - acc: 0.2984 - val_loss: 1.8111 - val_acc: 0.3654
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8694 - acc: 0.3166 - val_loss: 1.7346 - val_acc: 0.3894
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8864 - acc: 0.3178 - val_loss: 1.7460 - val_acc: 0.3939
+Training Iteration: 6 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8416 - acc: 0.3240 - val_loss: 1.7339 - val_acc: 0.4102
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9474 - acc: 0.2954 - val_loss: 1.8223 - val_acc: 0.3550
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9568 - acc: 0.2848 - val_loss: 1.8705 - val_acc: 0.3448
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8384 - acc: 0.3308 - val_loss: 1.7069 - val_acc: 0.3957
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8601 - acc: 0.3116 - val_loss: 1.7399 - val_acc: 0.3947
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9747 - acc: 0.2860 - val_loss: 1.8561 - val_acc: 0.3527
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9274 - acc: 0.2918 - val_loss: 1.8124 - val_acc: 0.3827
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.9049 - acc: 0.3074 - val_loss: 1.7617 - val_acc: 0.3714
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8161 - acc: 0.3434 - val_loss: 1.6900 - val_acc: 0.4153
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8133 - acc: 0.3416 - val_loss: 1.7152 - val_acc: 0.4033
+Training Iteration: 7 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 17s 3ms/step - loss: 1.8031 - acc: 0.3460 - val_loss: 1.6897 - val_acc: 0.4123
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.9153 - acc: 0.2986 - val_loss: 1.7787 - val_acc: 0.3925
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 1.9120 - acc: 0.3028 - val_loss: 1.7940 - val_acc: 0.3942
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.8177 - acc: 0.3406 - val_loss: 1.6972 - val_acc: 0.4030
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 11s 2ms/step - loss: 1.8110 - acc: 0.3416 - val_loss: 1.6847 - val_acc: 0.4103
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.8876 - acc: 0.3190 - val_loss: 1.7612 - val_acc: 0.3745
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.8672 - acc: 0.3162 - val_loss: 1.7415 - val_acc: 0.3884
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.8517 - acc: 0.3160 - val_loss: 1.7457 - val_acc: 0.3770
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.7451 - acc: 0.3592 - val_loss: 1.6333 - val_acc: 0.4299
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.8023 - acc: 0.3518 - val_loss: 1.6684 - val_acc: 0.4169
+Training Iteration: 8 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 13s 3ms/step - loss: 1.7555 - acc: 0.3606 - val_loss: 1.6542 - val_acc: 0.4296
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.8798 - acc: 0.3132 - val_loss: 1.7376 - val_acc: 0.4057
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.8670 - acc: 0.3208 - val_loss: 1.7351 - val_acc: 0.3995
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 12s 2ms/step - loss: 1.7800 - acc: 0.3568 - val_loss: 1.6582 - val_acc: 0.4210
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.7981 - acc: 0.3374 - val_loss: 1.6782 - val_acc: 0.4121
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.8256 - acc: 0.3296 - val_loss: 1.7162 - val_acc: 0.3836
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.8362 - acc: 0.3316 - val_loss: 1.6949 - val_acc: 0.4128
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.8047 - acc: 0.3336 - val_loss: 1.6694 - val_acc: 0.4252
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.7883 - acc: 0.3480 - val_loss: 1.6615 - val_acc: 0.4378
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7434 - acc: 0.3676 - val_loss: 1.6235 - val_acc: 0.4309
+Training Iteration: 9 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.7661 - acc: 0.3604 - val_loss: 1.6424 - val_acc: 0.4197
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.8282 - acc: 0.3342 - val_loss: 1.6869 - val_acc: 0.4273
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.8541 - acc: 0.3164 - val_loss: 1.7250 - val_acc: 0.4060
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 14s 3ms/step - loss: 1.7166 - acc: 0.3694 - val_loss: 1.6054 - val_acc: 0.4381
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7517 - acc: 0.3776 - val_loss: 1.6405 - val_acc: 0.4236
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.8119 - acc: 0.3412 - val_loss: 1.6980 - val_acc: 0.3926
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7687 - acc: 0.3610 - val_loss: 1.6534 - val_acc: 0.4173
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 16s 3ms/step - loss: 1.7542 - acc: 0.3518 - val_loss: 1.6341 - val_acc: 0.4287
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7233 - acc: 0.3744 - val_loss: 1.6130 - val_acc: 0.4399
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7290 - acc: 0.3754 - val_loss: 1.6067 - val_acc: 0.4284
+Training Iteration: 10 / 10
+Segment: seg0
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7065 - acc: 0.3876 - val_loss: 1.6177 - val_acc: 0.4390
+Segment: seg1
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7815 - acc: 0.3438 - val_loss: 1.6443 - val_acc: 0.4309
+Segment: seg2
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.8559 - acc: 0.3172 - val_loss: 1.7000 - val_acc: 0.4206
+Segment: seg3
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.6778 - acc: 0.4002 - val_loss: 1.5644 - val_acc: 0.4452
+Segment: seg4
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 16s 3ms/step - loss: 1.7469 - acc: 0.3650 - val_loss: 1.6284 - val_acc: 0.4262
+Segment: seg5
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7895 - acc: 0.3454 - val_loss: 1.6375 - val_acc: 0.4240
+Segment: seg6
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7481 - acc: 0.3696 - val_loss: 1.6271 - val_acc: 0.4376
+Segment: seg7
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7328 - acc: 0.3596 - val_loss: 1.6235 - val_acc: 0.4419
+Segment: seg8
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 16s 3ms/step - loss: 1.6718 - acc: 0.3914 - val_loss: 1.5528 - val_acc: 0.4658
+Segment: seg9
+Train on 5000 samples, validate on 10000 samples
+Epoch 1/1
+5000/5000 [==============================] - 15s 3ms/step - loss: 1.7018 - acc: 0.3800 - val_loss: 1.6118 - val_acc: 0.4265
+
+-------------------------------------------------------------------------------------------------
+Segment model (serial) training time: 1384.3762199878693 seconds
+10000/10000 [==============================] - 8s 804us/step
+10000/10000 [==============================] - 6s 551us/step
+10000/10000 [==============================] - 6s 559us/step
+10000/10000 [==============================] - 7s 656us/step
+10000/10000 [==============================] - 7s 659us/step
+10000/10000 [==============================] - 7s 677us/step
+10000/10000 [==============================] - 7s 668us/step
+10000/10000 [==============================] - 7s 676us/step
+10000/10000 [==============================] - 7s 682us/step
+10000/10000 [==============================] - 7s 678us/step
+Epoch 1/60
+10000/10000 [==============================] - 8s 776us/step - loss: 1.9932 - acc: 0.2909
+Epoch 2/60
+10000/10000 [==============================] - 3s 279us/step - loss: 1.6199 - acc: 0.4394
+Epoch 3/60
+10000/10000 [==============================] - 3s 277us/step - loss: 1.5579 - acc: 0.4629
+Epoch 4/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.5269 - acc: 0.4688
+Epoch 5/60
+10000/10000 [==============================] - 3s 265us/step - loss: 1.5085 - acc: 0.4727
+Epoch 6/60
+10000/10000 [==============================] - 3s 277us/step - loss: 1.4992 - acc: 0.4757
+Epoch 7/60
+10000/10000 [==============================] - 3s 273us/step - loss: 1.4895 - acc: 0.4757
+Epoch 8/60
+10000/10000 [==============================] - 3s 279us/step - loss: 1.4848 - acc: 0.4743
+Epoch 9/60
+10000/10000 [==============================] - 3s 275us/step - loss: 1.4716 - acc: 0.4820
+Epoch 10/60
+10000/10000 [==============================] - 3s 286us/step - loss: 1.4676 - acc: 0.4865
+Epoch 11/60
+10000/10000 [==============================] - 3s 278us/step - loss: 1.4603 - acc: 0.4859
+Epoch 12/60
+10000/10000 [==============================] - 3s 283us/step - loss: 1.4555 - acc: 0.4877
+Epoch 13/60
+10000/10000 [==============================] - 3s 280us/step - loss: 1.4519 - acc: 0.4869
+Epoch 14/60
+10000/10000 [==============================] - 3s 279us/step - loss: 1.4470 - acc: 0.4912
+Epoch 15/60
+10000/10000 [==============================] - 3s 262us/step - loss: 1.4378 - acc: 0.4893
+Epoch 16/60
+10000/10000 [==============================] - 3s 271us/step - loss: 1.4353 - acc: 0.4935
+Epoch 17/60
+10000/10000 [==============================] - 3s 266us/step - loss: 1.4333 - acc: 0.4962
+Epoch 18/60
+10000/10000 [==============================] - 3s 277us/step - loss: 1.4245 - acc: 0.4943
+Epoch 19/60
+10000/10000 [==============================] - 3s 277us/step - loss: 1.4318 - acc: 0.4910
+Epoch 20/60
+10000/10000 [==============================] - 3s 278us/step - loss: 1.4135 - acc: 0.4988
+Epoch 21/60
+10000/10000 [==============================] - 3s 277us/step - loss: 1.4177 - acc: 0.4954
+Epoch 22/60
+10000/10000 [==============================] - 3s 276us/step - loss: 1.4116 - acc: 0.5013
+Epoch 23/60
+10000/10000 [==============================] - 3s 276us/step - loss: 1.4039 - acc: 0.5006
+Epoch 24/60
+10000/10000 [==============================] - 3s 276us/step - loss: 1.3980 - acc: 0.5029
+Epoch 25/60
+10000/10000 [==============================] - 3s 291us/step - loss: 1.3913 - acc: 0.5030
+Epoch 26/60
+10000/10000 [==============================] - 3s 286us/step - loss: 1.3951 - acc: 0.5066
+Epoch 27/60
+10000/10000 [==============================] - 3s 279us/step - loss: 1.3866 - acc: 0.5064
+Epoch 28/60
+10000/10000 [==============================] - 3s 293us/step - loss: 1.3794 - acc: 0.5067
+Epoch 29/60
+10000/10000 [==============================] - 3s 293us/step - loss: 1.3850 - acc: 0.5111
+Epoch 30/60
+10000/10000 [==============================] - 3s 267us/step - loss: 1.3745 - acc: 0.5147
+Epoch 31/60
+10000/10000 [==============================] - 3s 270us/step - loss: 1.3729 - acc: 0.5077
+Epoch 32/60
+10000/10000 [==============================] - 3s 271us/step - loss: 1.3654 - acc: 0.5163
+Epoch 33/60
+10000/10000 [==============================] - 3s 269us/step - loss: 1.3592 - acc: 0.5146
+Epoch 34/60
+10000/10000 [==============================] - 3s 269us/step - loss: 1.3586 - acc: 0.5170
+Epoch 35/60
+10000/10000 [==============================] - 3s 271us/step - loss: 1.3484 - acc: 0.5214
+Epoch 36/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.3545 - acc: 0.5165
+Epoch 37/60
+10000/10000 [==============================] - 3s 265us/step - loss: 1.3454 - acc: 0.5194
+Epoch 38/60
+10000/10000 [==============================] - 3s 266us/step - loss: 1.3451 - acc: 0.5194
+Epoch 39/60
+10000/10000 [==============================] - 3s 281us/step - loss: 1.3305 - acc: 0.5254
+Epoch 40/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.3448 - acc: 0.5179
+Epoch 41/60
+10000/10000 [==============================] - 3s 280us/step - loss: 1.3266 - acc: 0.5237
+Epoch 42/60
+10000/10000 [==============================] - 3s 296us/step - loss: 1.3222 - acc: 0.5216
+Epoch 43/60
+10000/10000 [==============================] - 3s 274us/step - loss: 1.3184 - acc: 0.5233
+Epoch 44/60
+10000/10000 [==============================] - 3s 261us/step - loss: 1.3185 - acc: 0.5264
+Epoch 45/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.3111 - acc: 0.5313
+Epoch 46/60
+10000/10000 [==============================] - 3s 278us/step - loss: 1.3007 - acc: 0.5328
+Epoch 47/60
+10000/10000 [==============================] - 3s 279us/step - loss: 1.3021 - acc: 0.5395
+Epoch 48/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.2965 - acc: 0.5344
+Epoch 49/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.2932 - acc: 0.5366
+Epoch 50/60
+10000/10000 [==============================] - 3s 266us/step - loss: 1.2886 - acc: 0.5401
+Epoch 51/60
+10000/10000 [==============================] - 3s 273us/step - loss: 1.2864 - acc: 0.5339
+Epoch 52/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.2876 - acc: 0.5409
+Epoch 53/60
+10000/10000 [==============================] - 3s 272us/step - loss: 1.2830 - acc: 0.5314
+Epoch 54/60
+10000/10000 [==============================] - 3s 261us/step - loss: 1.2685 - acc: 0.5403
+Epoch 55/60
+10000/10000 [==============================] - 3s 275us/step - loss: 1.2796 - acc: 0.5452
+Epoch 56/60
+10000/10000 [==============================] - 3s 275us/step - loss: 1.2707 - acc: 0.5400
+Epoch 57/60
+10000/10000 [==============================] - 3s 276us/step - loss: 1.2678 - acc: 0.5420
+Epoch 58/60
+10000/10000 [==============================] - 3s 290us/step - loss: 1.2648 - acc: 0.5437
+Epoch 59/60
+10000/10000 [==============================] - 3s 311us/step - loss: 1.2609 - acc: 0.5455
+Epoch 60/60
+10000/10000 [==============================] - 3s 296us/step - loss: 1.2622 - acc: 0.5412
+10000/10000 [==============================] - 4s 359us/step
+Convolutional ensemble model accuracy on ensemble training data: 0.5728
+5000/5000 [==============================] - 2s 470us/step
+5000/5000 [==============================] - 3s 565us/step
+5000/5000 [==============================] - 2s 491us/step
+5000/5000 [==============================] - 3s 519us/step
+5000/5000 [==============================] - 3s 514us/step
+5000/5000 [==============================] - 2s 495us/step
+5000/5000 [==============================] - 3s 508us/step
+5000/5000 [==============================] - 3s 530us/step
+5000/5000 [==============================] - 2s 413us/step
+5000/5000 [==============================] - 2s 424us/step
+5000/5000 [==============================] - 1s 154us/step
+Convolutional ensemble model accuracy on ensemble test data: 0.5666
+Convolutional ensemble training time: 318.1681671142578 seconds
+Full training time: 1702.5451169013977 seconds
+Potential training time (with parallelism): 456.6058620929718 seconds
+-------------------------------------------------------------------------------------------------
+50000/50000 [==============================] - 27s 533us/step
+50000/50000 [==============================] - 26s 510us/step
+50000/50000 [==============================] - 30s 610us/step
+50000/50000 [==============================] - 29s 571us/step
+50000/50000 [==============================] - 27s 539us/step
+50000/50000 [==============================] - 28s 553us/step
+50000/50000 [==============================] - 32s 639us/step
+50000/50000 [==============================] - 28s 568us/step
+50000/50000 [==============================] - 30s 598us/step
+50000/50000 [==============================] - 28s 560us/step
+50000/50000 [==============================] - 9s 181us/step
+10000/10000 [==============================] - 2s 189us/step
+Training set prediction accuracy of convolutional boosted ensemble: 0.52534
+Test set prediction accuracy of convolutional boosted ensemble: 0.5728
+Full evaluation time: 553.4284710884094 seconds
+-------------------------------------------------------------------------------------------------
+
+Train on 50000 samples, validate on 10000 samples
+Epoch 1/10
+50000/50000 [==============================] - 90s 2ms/step - loss: 1.8121 - acc: 0.3338 - val_loss: 1.4472 - val_acc: 0.4938
+Epoch 2/10
+50000/50000 [==============================] - 71s 1ms/step - loss: 1.4931 - acc: 0.4549 - val_loss: 1.3155 - val_acc: 0.5371
+Epoch 3/10
+50000/50000 [==============================] - 68s 1ms/step - loss: 1.3848 - acc: 0.4995 - val_loss: 1.2330 - val_acc: 0.5659
+Epoch 4/10
+50000/50000 [==============================] - 68s 1ms/step - loss: 1.3183 - acc: 0.5218 - val_loss: 1.1751 - val_acc: 0.5905
+Epoch 5/10
+50000/50000 [==============================] - 60s 1ms/step - loss: 1.2610 - acc: 0.5449 - val_loss: 1.1332 - val_acc: 0.6048
+Epoch 6/10
+50000/50000 [==============================] - 59s 1ms/step - loss: 1.2127 - acc: 0.5622 - val_loss: 1.1067 - val_acc: 0.6147
+Epoch 7/10
+50000/50000 [==============================] - 63s 1ms/step - loss: 1.1841 - acc: 0.5746 - val_loss: 1.0878 - val_acc: 0.6167
+Epoch 8/10
+50000/50000 [==============================] - 61s 1ms/step - loss: 1.1531 - acc: 0.5849 - val_loss: 1.0943 - val_acc: 0.6196
+Epoch 9/10
+50000/50000 [==============================] - 64s 1ms/step - loss: 1.1304 - acc: 0.5914 - val_loss: 1.0469 - val_acc: 0.6335
+Epoch 10/10
+50000/50000 [==============================] - 64s 1ms/step - loss: 1.1091 - acc: 0.6020 - val_loss: 1.0213 - val_acc: 0.6386
+
+-------------------------------------------------------------------------------------------------
+Serial CNN training time: 668.879546880722 seconds
+-------------------------------------------------------------------------------------------------
+Training set prediction accuracy of serial CNN: 0.69092
+Test set prediction accuracy of serial CNN: 0.6386
+Full evaluation time: 30.595273971557617 seconds
+-------------------------------------------------------------------------------------------------
