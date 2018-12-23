@@ -10,7 +10,7 @@ from keras.optimizers import RMSprop, Adam, SGD
 from keras.models import clone_model
 from keras.callbacks import EarlyStopping
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import math
 from scipy import linalg as la
 import random
@@ -20,17 +20,19 @@ import time
 
 class distributed_cnn_benchmark:
 
-	def __init__(self, model_arch):
+	def __init__(self):
 		self.num_classes = 10
 		self.batch_size = 300
 		self.num_segments = 20
 		self.num_training_iterations = 1
 		self.num_iters_on_segment = 2
 		self.cached_predictions = {}
-		self.model_arch = model_arch
 		self.cifar = True
 		self.tensorflow_device_test()
 		self.get_data()
+
+	def train_script(self, model_arch):
+		self.model_arch = model_arch
 		self.define_segment_models()
 		self.train_model_aggregate()
 		self.eval_model_aggregate()
@@ -63,6 +65,13 @@ class distributed_cnn_benchmark:
 		self.y_train = keras.utils.to_categorical(self.y_train, self.num_classes)
 		self.y_test = keras.utils.to_categorical(self.y_test, self.num_classes)
 
+	def define_segment_models(self):
+		self.segment_models = {}
+		model = clone_model(self.model_arch)
+		for i in range(self.num_segments):
+			# Initialize each segment model using the same randomly-selected initial weights
+			self.segment_models["seg"+str(i)] = clone_model(model)
+
 	def distribute_data(self):
 		# Define how much data per segment
 		self.segment_batches = {}
@@ -78,17 +87,6 @@ class distributed_cnn_benchmark:
 		for i in range(self.num_segments):
 			self.segment_batches["seg"+str(i)] = (self.x_train[data_per_segment*i:data_per_segment*i+data_per_segment],
 												  self.y_train[data_per_segment*i:data_per_segment*i+data_per_segment])
-
-	def get_new_model(self):
-		# This is the model that the user defines/provides to us
-		return clone_model(self.model_arch)
-
-	def define_segment_models(self):
-		self.segment_models = {}
-		model = self.get_new_model()
-		for i in range(self.num_segments):
-			# Initialize each segment model using the same randomly-selected initial weights
-			self.segment_models["seg"+str(i)] = clone_model(model)
 
 	def train_segment(self, segment):
 		segment = "seg"+str(segment)
@@ -218,14 +216,16 @@ class distributed_cnn_benchmark:
 
 class serial_cnn_benchmark:
 
-	def __init__(self, model):
+	def __init__(self):
 		self.num_classes = 10
 		self.batch_size = 300
 		self.epochs = 10
-		self.model = clone_model(model)
 		self.cifar = True
 		self.tensorflow_device_test()
 		self.get_data()
+
+	def train_script(self, model):
+		self.model = clone_model(model)
 		self.train_model()
 		self.print_eval_results()
 
@@ -284,18 +284,21 @@ class serial_cnn_benchmark:
 		return self.model.evaluate(x_input, y_output, verbose=0)[1]
 
 
+distrcnn = distributed_cnn_benchmark()
+sercnn = serial_cnn_benchmark()
+
 # Define the model to be used
 model = Sequential()
 model.add(Conv2D(8, kernel_size=(3, 3),
 	activation='relu',
-	input_shape=self.input_shape))
+	input_shape=distrcnn.input_shape))
 model.add(Conv2D(16, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.2))
 model.add(Flatten())
 model.add(Dense(16, activation='relu'))
 model.add(Dropout(0.2))
-model.add(Dense(self.num_classes, activation='softmax'))
+model.add(Dense(distrcnn.num_classes, activation='softmax'))
 # Older model:
 # model = Sequential()
 # model.add(Conv2D([32/64], kernel_size=(3, 3),
@@ -309,5 +312,5 @@ model.add(Dense(self.num_classes, activation='softmax'))
 # model.add(Dropout(0.2))
 # model.add(Dense(self.num_classes, activation='softmax'))
 
-distributed_cnn_benchmark_inst = distributed_cnn_benchmark(model)
-serial_cnn_benchmark_inst = serial_cnn_benchmark(model)
+distrcnn.train_script(model)
+sercnn.train_script(model)
