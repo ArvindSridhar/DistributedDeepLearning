@@ -23,9 +23,9 @@ class distributed_cnn_benchmark:
 	def __init__(self):
 		self.num_classes = 10
 		self.batch_size = 300
-		self.num_segments = 20
-		self.num_training_iterations = 4
-		self.num_iters_on_segment = 5
+		self.num_segments = 10
+		self.num_training_iterations = 20
+		self.num_iters_on_segment = 1
 		self.cached_predictions = {}
 		self.cifar = True
 		self.tensorflow_device_test()
@@ -140,7 +140,7 @@ class distributed_cnn_benchmark:
 	def predict_cached(self, model, segment, x_input):
 		cached_key = segment + str(x_input.tobytes())
 		if cached_key not in self.cached_predictions:
-			self.cached_predictions[cached_key] = model.predict(x_input)
+			self.cached_predictions[cached_key] = model.predict(x_input, verbose=1)
 			# print("Didn't get from cache, had to recompute:", segment, x_input.shape)
 		return self.cached_predictions[cached_key]
 
@@ -154,7 +154,7 @@ class distributed_cnn_benchmark:
 		ensemble_predictions = []
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
-			prediction = model.predict(x_input, verbose=1).T
+			prediction = self.predict_cached(model, segment, x_input).T
 			ensemble_predictions.append(prediction)
 		return np.array(ensemble_predictions).T.reshape((x_input.shape[0], self.num_segments, self.num_classes, 1))
 
@@ -171,14 +171,14 @@ class distributed_cnn_benchmark:
 		x_test_ensemble, y_test_ensemble = self.x_test[split_value:], self.y_test[split_value:]
 
 		# Larger training set
-		x_train_ensemble, y_train_ensemble = self.x_train, self.y_train #np.vstack(self.x_train, x_train_ensemble), np.vstack(self.y_train, y_train_ensemble)
+		x_train_ensemble, y_train_ensemble = self.x_test, self.y_test
 
 		# Define the convolutional ensemble model as a deep convolutional neural network
 		self.conv_ensemble_model = Sequential()
-		self.conv_ensemble_model.add(Conv2D(128, kernel_size=(3, 3),
+		self.conv_ensemble_model.add(Conv2D(64, kernel_size=(3, 3),
 			activation='relu',
 			input_shape=(self.num_segments, self.num_classes, 1,)))
-		self.conv_ensemble_model.add(Conv2D(128, (3, 3), activation='relu'))
+		self.conv_ensemble_model.add(Conv2D(64, (3, 3), activation='relu'))
 		self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
 		self.conv_ensemble_model.add(Dropout(0.3))
 		self.conv_ensemble_model.add(Flatten())
@@ -195,7 +195,7 @@ class distributed_cnn_benchmark:
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
-			epochs=100,
+			epochs=60,
 			verbose=1,
 			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
 
@@ -287,14 +287,14 @@ sercnn = serial_cnn_benchmark()
 
 # Define the model to be used
 model = Sequential()
-model.add(Conv2D(8, kernel_size=(3, 3),
+model.add(Conv2D(16, kernel_size=(3, 3),
 	activation='relu',
 	input_shape=distrcnn.input_shape))
-model.add(Conv2D(16, (3, 3), activation='relu'))
+model.add(Conv2D(32, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.2))
 model.add(Flatten())
-model.add(Dense(16, activation='relu'))
+model.add(Dense(32, activation='relu'))
 model.add(Dropout(0.2))
 model.add(Dense(distrcnn.num_classes, activation='softmax'))
 # Older model:
