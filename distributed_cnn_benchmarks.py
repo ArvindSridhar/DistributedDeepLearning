@@ -4,11 +4,12 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import keras
 from keras.datasets import mnist, cifar10
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.models import Sequential, Model
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input
 from keras.optimizers import RMSprop, Adam, SGD
 from keras.models import clone_model
 from keras.callbacks import EarlyStopping
+from keras.regularizers import l2
 import numpy as np
 #import matplotlib.pyplot as plt
 import math
@@ -401,7 +402,7 @@ def create_model_architecture(n_classes, input_shape, config='A'):
 
 	x = Dense(n_classes, activation='softmax', name="predictions")(x)
 
-	model = Model(inputs, x, name='vgg16-places365')
+	model = Model(inputs, x, name='vgg16-cifar10')
 
 	sgd = SGD(lr=0.01, decay=1e-6, nesterov=True)
 	model.summary()
