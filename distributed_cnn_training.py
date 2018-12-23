@@ -25,7 +25,7 @@ class distributed_cnn_training:
 
 	def __init__(self):
 		self.num_classes = 10
-		self.num_grand_epochs = 10 #Can tune
+		self.num_grand_epochs = 1 #Can tune
 		self.batch_size = 500 #Can tune
 		self.num_segments = 10 #Can tune
 		self.num_iters_on_segment = 1 #Can tune
@@ -42,8 +42,8 @@ class distributed_cnn_training:
 		print(sess.run(hello))
 
 	def get_data(self):
-		(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-		self.cifar = True
+		(x_train, y_train), (x_test, y_test) = mnist.load_data()
+		self.cifar = False
 		self.num_training_examples, self.num_test_examples = x_train.shape[0], x_test.shape[0]
 		if self.cifar:
 			self.img_rows, self.img_cols, self.num_channels = x_train.shape[2], x_train.shape[3], x_train.shape[1]
@@ -95,7 +95,7 @@ class distributed_cnn_training:
 			self.segment_models["seg"+str(i)] = clone_model(model)
 			self.segment_colors["seg"+str(i)] = self.utils.random_color()
 
-	def train_segment(self, segment):
+	def train_segment(self, segment, i):
 		segment = "seg"+str(segment)
 		print('Segment:', segment)
 		(x_train_seg, y_train_seg) = self.segment_batches[segment]
@@ -108,6 +108,11 @@ class distributed_cnn_training:
 			epochs=self.num_iters_on_segment,
 			verbose=1,
 			validation_data=(self.x_test, self.y_test))
+		if i == self.num_grand_epochs+1:
+			weights = model_seg.get_weights()
+			for j in range(len(weights)):
+				plot = self.plots[j]
+				plot.plot_data(weights[j], self.segment_colors[segment])
 
 	def train_model_aggregate(self):
 		# Training and evaluation loop
@@ -124,14 +129,8 @@ class distributed_cnn_training:
 			# Train individual models for specified number of epochs
 			start_time = time.time()
 			for segnum in list(range(self.num_segments)):
-				self.train_segment(segnum)
-			# parmap(self.train_segment, list(range(self.num_segments)))
+				self.train_segment(segnum, i)
 			print("Time:", time.time() - start_time)
-			# weights1 = self.segment_models["seg1"].get_weights()
-			# time.sleep(5)
-			# weights2 = self.segment_models["seg1"].get_weights()
-			# assertion = all([(a == b).all() for (a, b) in zip(weights1, weights2)])
-			# assert (assertion), "Models not done training"
 
 			# Average the weights of the trained models on the segments, add these weights to the aggregate model
 			avg_weights = []
@@ -140,8 +139,6 @@ class distributed_cnn_training:
 							 in self.segment_models]
 				avg_weights.append(sum(np_arrays)/self.num_segments)
 			self.aggregate_model.set_weights(avg_weights)
-			# avg_weights = sum([np.array(self.segment_models[segment].get_weights())
-			# 				   for segment in self.segment_models])/self.num_segments
 
 			# Compile aggregate model
 			self.aggregate_model.compile(loss='categorical_crossentropy',
@@ -153,12 +150,12 @@ class distributed_cnn_training:
 			print("Aggregate model accuracy on test set:", score[1])
 
 			# Plot the average model's weights and show the plots, only if the algorithm is on its last grand epoch
-			# if i == self.num_grand_epochs+1:
-			# 	avg_weights = self.aggregate_model.get_weights()
-			# 	for j in range(len(avg_weights)):
-			# 		plot = self.plots[j]
-			# 		plot.plot_data(avg_weights[j], "dark orange", 'x')
-			# 		plot.show_plot()
+			if i == self.num_grand_epochs+1:
+				avg_weights = self.aggregate_model.get_weights()
+				for j in range(len(avg_weights)):
+					plot = self.plots[j]
+					plot.plot_data(avg_weights[j], "dark orange", 'x')
+					plot.show_plot()
 
 			# Redistribute the aggregate model to each segment for the next grand epoch of training, if not on last grand epoch
 			if i != self.num_grand_epochs-1:

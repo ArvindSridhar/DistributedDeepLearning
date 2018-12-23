@@ -8,3 +8,13 @@
 
 # pool = multiprocessing.Pool(self.num_segments)
 			# pool.map(self.process, list(range(self.num_segments)))
+
+
+
+# weights1 = self.segment_models["seg1"].get_weights()
+			# time.sleep(5)
+			# weights2 = self.segment_models["seg1"].get_weights()
+			# assertion = all([(a == b).all() for (a, b) in zip(weights1, weights2)])
+			# assert (assertion), "Models not done training"
+
+# parmap(self.train_segment, list(range(self.num_segments)))

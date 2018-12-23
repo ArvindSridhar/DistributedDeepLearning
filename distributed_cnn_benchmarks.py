@@ -20,14 +20,16 @@ import time
 
 class distributed_cnn_benchmark:
 
-	def __init__(self):
+	def __init__(self, model_arch):
 		self.num_classes = 10
 		self.batch_size = 300
-		self.num_segments = 10
-		self.num_training_iterations = 10
+		self.num_segments = 20
+		self.num_training_iterations = 1
 		self.num_iters_on_segment = 2
 		self.cached_predictions = {}
+		self.model_arch = model_arch
 		self.cifar = True
+		self.tensorflow_device_test()
 		self.get_data()
 		self.define_segment_models()
 		self.train_model_aggregate()
@@ -79,29 +81,7 @@ class distributed_cnn_benchmark:
 
 	def get_new_model(self):
 		# This is the model that the user defines/provides to us
-		model = Sequential()
-		model.add(Conv2D(64, kernel_size=(3, 3),
-			activation='relu',
-			input_shape=self.input_shape))
-		model.add(Conv2D(128, (3, 3), activation='relu'))
-		model.add(MaxPooling2D(pool_size=(2, 2)))
-		model.add(Dropout(0.25))
-		model.add(Flatten())
-		model.add(Dense(128, activation='relu'))
-		model.add(Dropout(0.2))
-		model.add(Dense(self.num_classes, activation='softmax'))
-		# Lighter model 1: change 64 to 32 and 128 to 64
-		# Lighter model 2:
-		# model = Sequential()
-		# model.add(Conv2D(32, kernel_size=(3, 3),
-		# 	activation='relu',
-		# 	input_shape=self.input_shape))
-		# model.add(Conv2D(32, (3, 3), activation='relu'))
-		# model.add(MaxPooling2D(pool_size=(2, 2)))
-		# model.add(Dropout(0.25))
-		# model.add(Flatten())
-		# model.add(Dense(self.num_classes, activation='softmax'))
-		return model
+		return clone_model(self.model_arch)
 
 	def define_segment_models(self):
 		self.segment_models = {}
@@ -128,6 +108,7 @@ class distributed_cnn_benchmark:
 		# Train the segment models, ideally in parallel
 		start_time = time.time()
 		for i in range(self.num_training_iterations):
+			print("Training Iteration:", i+1, "/", self.num_training_iterations)
 			self.distribute_data()
 			for segnum in list(range(self.num_segments)):
 				self.train_segment(segnum)
@@ -198,15 +179,15 @@ class distributed_cnn_benchmark:
 
 		# Define the convolutional ensemble model as a deep convolutional neural network
 		self.conv_ensemble_model = Sequential()
-		self.conv_ensemble_model.add(Conv2D(32, kernel_size=(3, 3),
+		self.conv_ensemble_model.add(Conv2D(64, kernel_size=(3, 3),
 			activation='relu',
 			input_shape=(self.num_segments, self.num_classes, 1,)))
 		self.conv_ensemble_model.add(Conv2D(64, (3, 3), activation='relu'))
 		self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
-		self.conv_ensemble_model.add(Dropout(0.25))
+		self.conv_ensemble_model.add(Dropout(0.3))
 		self.conv_ensemble_model.add(Flatten())
 		self.conv_ensemble_model.add(Dense(128, activation='relu'))
-		self.conv_ensemble_model.add(Dropout(0.2))
+		self.conv_ensemble_model.add(Dropout(0.3))
 		self.conv_ensemble_model.add(Dense(self.num_classes, activation='softmax'))
 
 		# Compile the convolutional ensemble model
@@ -218,8 +199,8 @@ class distributed_cnn_benchmark:
 		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
-			epochs=60,
-			verbose=0,
+			epochs=80,
+			verbose=1,
 			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
 
 		# Compute the accuracy of the convolutional ensemble model with the train_ensemble data
@@ -237,13 +218,14 @@ class distributed_cnn_benchmark:
 
 class serial_cnn_benchmark:
 
-	def __init__(self):
+	def __init__(self, model):
 		self.num_classes = 10
 		self.batch_size = 300
 		self.epochs = 10
+		self.model = clone_model(model)
 		self.cifar = True
+		self.tensorflow_device_test()
 		self.get_data()
-		self.define_model()
 		self.train_model()
 		self.print_eval_results()
 
@@ -275,20 +257,6 @@ class serial_cnn_benchmark:
 		self.y_train = keras.utils.to_categorical(self.y_train, self.num_classes)
 		self.y_test = keras.utils.to_categorical(self.y_test, self.num_classes)
 
-	def define_model(self):
-		model = Sequential()
-		model.add(Conv2D(32, kernel_size=(3, 3),
-			activation='relu',
-			input_shape=self.input_shape))
-		model.add(Conv2D(64, (3, 3), activation='relu'))
-		model.add(MaxPooling2D(pool_size=(2, 2)))
-		model.add(Dropout(0.25))
-		model.add(Flatten())
-		model.add(Dense(128, activation='relu'))
-		model.add(Dropout(0.2))
-		model.add(Dense(self.num_classes, activation='softmax'))
-		self.model = model
-
 	def train_model(self):
 		start_time = time.time()
 		self.model.compile(loss='categorical_crossentropy',
@@ -316,5 +284,30 @@ class serial_cnn_benchmark:
 		return self.model.evaluate(x_input, y_output, verbose=0)[1]
 
 
-distributed_cnn_benchmark_inst = distributed_cnn_benchmark()
-serial_cnn_benchmark_inst = serial_cnn_benchmark()
+# Define the model to be used
+model = Sequential()
+model.add(Conv2D(8, kernel_size=(3, 3),
+	activation='relu',
+	input_shape=self.input_shape))
+model.add(Conv2D(16, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.2))
+model.add(Flatten())
+model.add(Dense(16, activation='relu'))
+model.add(Dropout(0.2))
+model.add(Dense(self.num_classes, activation='softmax'))
+# Older model:
+# model = Sequential()
+# model.add(Conv2D([32/64], kernel_size=(3, 3),
+# 	activation='relu',
+# 	input_shape=self.input_shape))
+# model.add(Conv2D([64/128], (3, 3), activation='relu'))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(Dropout(0.25))
+# model.add(Flatten())
+# model.add(Dense(128, activation='relu'))
+# model.add(Dropout(0.2))
+# model.add(Dense(self.num_classes, activation='softmax'))
+
+distributed_cnn_benchmark_inst = distributed_cnn_benchmark(model)
+serial_cnn_benchmark_inst = serial_cnn_benchmark(model)

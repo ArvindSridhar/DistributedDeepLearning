@@ -24,9 +24,9 @@ class distributed_nn_training:
 	def __init__(self):
 		self.num_classes = 10
 		self.num_grand_epochs = 1 #Can tune
-		self.batch_size = 100 #Can tune
+		self.batch_size = 300 #Can tune
 		self.num_segments = 10 #Can tune
-		self.num_iters_on_segment = 3 #Can tune
+		self.num_iters_on_segment = 2 #Can tune
 		self.cached_predictions = {}
 		self.utils = utilities()
 		self.get_data()
@@ -71,6 +71,13 @@ class distributed_nn_training:
 		model.add(Dense(512, activation='relu'))
 		model.add(Dropout(0.2))
 		model.add(Dense(self.num_classes, activation='softmax'))
+		# Alternate model:
+		# model = Sequential()
+		# model.add(Dense(5, activation='relu', input_shape=(self.num_features,)))
+		# model.add(Dropout(0.2))
+		# model.add(Dense(5, activation='relu'))
+		# model.add(Dropout(0.2))
+		# model.add(Dense(self.num_classes, activation='softmax'))
 		return model
 
 	def define_segment_models(self):
