@@ -24,7 +24,7 @@ class distributed_cnn_benchmark:
 		self.num_classes = 10
 		self.batch_size = 300
 		self.num_segments = 20
-		self.num_training_iterations = 1
+		self.num_training_iterations = 4
 		self.num_iters_on_segment = 2
 		self.cached_predictions = {}
 		self.cifar = True
@@ -144,7 +144,7 @@ class distributed_cnn_benchmark:
 			# print("Didn't get from cache, had to recompute:", segment, x_input.shape)
 		return self.cached_predictions[cached_key]
 
-	def get_ensemble_predictions(self, x_input, expand_array=False):
+	def get_ensemble_predictions(self, x_input):
 		"""
 			Gives you the classification predictions for some x_input from each trained segment model
 			@param: x_input of the shape (num_examples, num_features)
@@ -154,13 +154,8 @@ class distributed_cnn_benchmark:
 		ensemble_predictions = []
 		for segment in sorted(self.segment_models):
 			model = self.segment_models[segment]
-			if not expand_array:
-				prediction = list(np.argmax(self.predict_cached(model, segment, x_input), axis=1))
-			else:
-				prediction = self.predict_cached(model, segment, x_input).T
+			prediction = model.predict(x_input, verbose=1).T
 			ensemble_predictions.append(prediction)
-		if not expand_array:
-			return np.array(ensemble_predictions)
 		return np.array(ensemble_predictions).T.reshape((x_input.shape[0], self.num_segments, self.num_classes, 1))
 
 	def convolutional_boosted_ensemble_train(self):
@@ -175,12 +170,15 @@ class distributed_cnn_benchmark:
 		x_train_ensemble, y_train_ensemble = self.x_test[0:split_value], self.y_test[0:split_value]
 		x_test_ensemble, y_test_ensemble = self.x_test[split_value:], self.y_test[split_value:]
 
+		# Larger training set
+		x_train_ensemble, y_train_ensemble = np.vstack(self.x_train, x_train_ensemble), np.vstack(self.y_train, y_train_ensemble)
+
 		# Define the convolutional ensemble model as a deep convolutional neural network
 		self.conv_ensemble_model = Sequential()
-		self.conv_ensemble_model.add(Conv2D(64, kernel_size=(3, 3),
+		self.conv_ensemble_model.add(Conv2D(128, kernel_size=(3, 3),
 			activation='relu',
 			input_shape=(self.num_segments, self.num_classes, 1,)))
-		self.conv_ensemble_model.add(Conv2D(64, (3, 3), activation='relu'))
+		self.conv_ensemble_model.add(Conv2D(128, (3, 3), activation='relu'))
 		self.conv_ensemble_model.add(MaxPooling2D(pool_size=(2, 2)))
 		self.conv_ensemble_model.add(Dropout(0.3))
 		self.conv_ensemble_model.add(Flatten())
@@ -194,10 +192,10 @@ class distributed_cnn_benchmark:
 			metrics=['accuracy'])
 
 		# Train the convolutional ensemble model with the train_ensemble data
-		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble, True)
+		ensemble_predictions = self.get_ensemble_predictions(x_train_ensemble)
 		history = self.conv_ensemble_model.fit(ensemble_predictions, y_train_ensemble,
 			batch_size=self.batch_size,
-			epochs=80,
+			epochs=100,
 			verbose=1,
 			callbacks=[EarlyStopping(monitor='loss', patience=10, verbose=0)])
 
@@ -210,8 +208,8 @@ class distributed_cnn_benchmark:
 		print("Convolutional ensemble model accuracy on ensemble test data:", validation_score)
 
 	def convolutional_boosted_ensemble_evaluate(self, x_input, y_output):
-		ensemble_predictions = self.get_ensemble_predictions(x_input, True)
-		return self.conv_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=0)[1]
+		ensemble_predictions = self.get_ensemble_predictions(x_input)
+		return self.conv_ensemble_model.evaluate(ensemble_predictions, y_output, verbose=1)[1]
 
 
 class serial_cnn_benchmark:
