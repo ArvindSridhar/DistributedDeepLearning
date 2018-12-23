@@ -25,7 +25,7 @@ class distributed_cnn_benchmark:
 		self.batch_size = 300
 		self.num_segments = 20
 		self.num_training_iterations = 4
-		self.num_iters_on_segment = 2
+		self.num_iters_on_segment = 5
 		self.cached_predictions = {}
 		self.cifar = True
 		self.tensorflow_device_test()
